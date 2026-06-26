@@ -1,0 +1,17 @@
+{
+  "name": "iporadar",
+  "private": true,
+  "description": "IPO decision support system for BEI (Indonesia Stock Exchange)",
+  "scripts": {
+    "dev": "docker compose up -d",
+    "dev:build": "docker compose up -d --build",
+    "dev:down": "docker compose down",
+    "dev:logs": "docker compose logs -f",
+    "dev:logs:api": "docker compose logs -f api",
+    "dev:logs:ml": "docker compose logs -f ml-service",
+    "dev:logs:web": "docker compose logs -f web",
+    "dev:ps": "docker compose ps",
+    "db:reset": "docker compose down -v && docker compose up -d postgres redis",
+    "validate": "cd apps/api && npm run validate"
+  }
+}

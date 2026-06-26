@@ -1,0 +1,3 @@
+# Trained ML models directory
+# Model files (.joblib, .pkl) are stored here after training in Phase 2.
+# These files are not committed to git.

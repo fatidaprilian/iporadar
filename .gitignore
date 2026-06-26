@@ -1,0 +1,54 @@
+# agentic-senior-core: local backup artifacts
+.agentic-backup/
+
+# agentic-senior-core: local runtime artifacts
+.agent-context/state/token-saver/
+.agent-context/state/token-optimization-report.json
+
+# agentic-senior-core: local-only governance files
+.agent-context/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+mcp.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+dist/
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# ML Models (large binary files)
+apps/ml-service/models/*.joblib
+apps/ml-service/models/*.pkl
+apps/ml-service/models/*.pt
+apps/ml-service/models/*.bin
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
