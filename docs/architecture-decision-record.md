@@ -2,7 +2,7 @@
 
 ## ADR-001: Two-Process Topology (Modular Monolith + Separate ML Service)
 
-**Status:** Accepted  
+**Status:** Superseded by ADR-008
 **Date:** 2026-06-24
 
 ### Context
@@ -185,3 +185,29 @@ Use only tree-based models:
 - Tree models handle tabular data with mixed types (numeric + categorical) naturally.
 - ~300 samples is adequate for tree models with proper cross-validation but insufficient for deep learning.
 - Interpretability: feature importance from XGBoost directly informs the prompt builder.
+
+---
+
+## ADR-008: Consolidation to FastAPI Monolith
+
+**Status:** Accepted  
+**Date:** 2026-07-03
+
+### Context
+
+The original architecture used 5 containers (NestJS, FastAPI, Next.js, PostgreSQL, Redis). The NestJS service and Redis were used primarily for scheduling background tasks via BullMQ and proxying API requests to FastAPI. This added unnecessary complexity, higher deployment costs, and latency due to inter-service network hops.
+
+### Decision
+
+Consolidate all backend logic into a single FastAPI monolithic service. 
+- Eliminate NestJS (`apps/api`).
+- Eliminate Redis (replace BullMQ with FastAPI `BackgroundTasks`).
+- Move the Playwright scraper, Prompt Builder, and orchestrator directly into the Python service.
+- The `ml-service` was renamed to `api` and absorbed all NestJS responsibilities.
+
+### Rationale
+
+- Reduces container count from 5 to 3 (FastAPI, Next.js, PostgreSQL), saving significant RAM.
+- Eliminates dual language maintenance (TypeScript + Python for backend).
+- Removes network overhead between the orchestration layer and ML models.
+- FastAPI's built-in `BackgroundTasks` is sufficient for this single-user, low-throughput application.

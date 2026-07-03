@@ -32,6 +32,10 @@ venv/
 *.egg-info/
 
 # ML Models (large binary files)
+apps/api/models/*.joblib
+apps/api/models/*.pkl
+apps/api/models/*.pt
+apps/api/models/*.bin
 apps/ml-service/models/*.joblib
 apps/ml-service/models/*.pkl
 apps/ml-service/models/*.pt
@@ -52,3 +56,6 @@ docker-compose.override.yml
 
 # Logs
 *.log
+
+.agents
+.claude

@@ -2,30 +2,36 @@
 
 ## Overview
 
-Two REST APIs exist in this system:
+Single FastAPI monolith (port 8000) serving REST API consumed by the Next.js dashboard.
 
-1. **NestJS API** (port 3001): Public-facing API consumed by the Next.js dashboard.
-2. **ML Service API** (port 8000): Internal API consumed only by the NestJS API. Not exposed outside Docker network in production.
+All endpoints use JSON request/response bodies. All timestamps are ISO 8601 UTC. Field names use `snake_case`.
 
-All endpoints use JSON request/response bodies. All timestamps are ISO 8601 UTC.
+Base URL: `http://localhost:8000/api/v1`
 
 ---
 
-## NestJS API (Public)
+### Health
 
-Base URL: `http://localhost:3001/api/v1`
+#### `GET /health`
+
+```json
+{
+  "status": "healthy",
+  "modelsLoaded": true
+}
+```
+
+---
 
 ### IPO Candidates
 
-#### `GET /ipo-candidates`
+#### `GET /candidates/`
 
-List IPO candidates with optional filtering.
-
-**Query Parameters:**
+List candidates with optional filtering.
 
 | Param | Type | Default | Description |
 |-------|------|---------|-------------|
-| `status` | string | `all` | Filter: `upcoming`, `listed`, `all` |
+| `status` | string | - | Filter: `upcoming`, `listed` |
 | `sector` | string | - | Filter by sector name |
 | `page` | integer | 1 | Page number |
 | `limit` | integer | 20 | Items per page (max 100) |
@@ -38,50 +44,46 @@ List IPO candidates with optional filtering.
     {
       "id": "uuid",
       "ticker": "XXXX",
-      "companyName": "PT Example Tbk",
+      "company_name": "PT Example Tbk",
       "sector": "Technology",
-      "listingDate": "2024-03-15T00:00:00Z",
-      "offerPrice": 500,
-      "shareCount": 1000000000,
+      "listing_date": "2024-03-15",
+      "offer_price_idr": 500,
+      "share_count": 1000000000,
       "underwriter": "Mandiri Sekuritas",
-      "underwriterTier": 1,
+      "underwriter_tier": 1,
       "status": "listed",
-      "fundamentals": {
-        "peRatio": 15.2,
-        "pbRatio": 2.1,
+      "fundamental": {
+        "pe_ratio": 15.2,
+        "pb_ratio": 2.1,
         "roe": 0.18,
-        "debtToEquity": 0.45,
-        "totalAssets": 5000000000000,
-        "revenueGrowthYoy": 0.25
-      },
-      "createdAt": "2024-03-01T00:00:00Z",
-      "updatedAt": "2024-03-15T00:00:00Z"
+        "debt_to_equity": 0.45,
+        "total_assets_idr": 5000000000000,
+        "revenue_growth_yoy": 0.25,
+        "sector_avg_pe": 20.0,
+        "sector_avg_pb": 3.0
+      }
     }
   ],
   "meta": {
     "page": 1,
     "limit": 20,
-    "total": 45,
-    "totalPages": 3
+    "total": 300,
+    "totalPages": 15
   }
 }
 ```
 
-#### `GET /ipo-candidates/:id`
+#### `GET /candidates/{id}`
 
-Get a single IPO candidate by ID.
+Single candidate with fundamental, news_articles, and predictions.
 
-**Response (200):** Single candidate object (same shape as list item).
+#### `POST /candidates/`
 
-**Response (404):**
+Create a new candidate. Uniqueness enforced on `ticker`.
 
-```json
-{
-  "statusCode": 404,
-  "message": "IPO candidate not found",
-  "error": "Not Found"
-}
-```
+#### `PATCH /candidates/{id}`
+
+Partial update.
 
 ---
 
@@ -89,21 +91,21 @@ Get a single IPO candidate by ID.
 
 #### `POST /analysis/trigger`
 
-Trigger a new analysis cycle. Enqueues a background job.
+Trigger a new analysis cycle as a background task.
 
 **Request Body:**
 
 ```json
 {
-  "candidateIds": ["uuid1", "uuid2"],
-  "topN": 5
+  "top_n": 5,
+  "candidate_ids": ["uuid1", "uuid2"]
 }
 ```
 
-- `candidateIds`: Optional. If omitted, analyzes all upcoming/recently listed candidates.
-- `topN`: Number of top candidates to include in prompt. Default: 5. Max: 10.
+- `candidate_ids`: Optional. If omitted, analyzes upcoming + recently listed candidates.
+- `top_n`: Number of top candidates in prompt. Default: 5.
 
-**Response (202):**
+**Response (200):**
 
 ```json
 {
@@ -113,217 +115,99 @@ Trigger a new analysis cycle. Enqueues a background job.
 }
 ```
 
-#### `GET /analysis/:jobId`
+#### `GET /analysis/{job_id}`
 
 Check analysis job status.
 
-**Response (200):**
-
 ```json
 {
-  "jobId": "uuid",
+  "job_id": "uuid",
   "status": "completed",
-  "startedAt": "2024-03-15T09:00:00Z",
-  "completedAt": "2024-03-15T09:03:45Z",
-  "resultId": "uuid"
+  "started_at": "2026-07-03T09:00:00Z",
+  "completed_at": "2026-07-03T09:00:03Z",
+  "error_message": null
 }
 ```
 
 Status values: `queued`, `processing`, `completed`, `failed`.
 
-#### `GET /analysis/results`
+#### `GET /analysis/results/list`
 
-List analysis results (paginated).
+Paginated list of analysis results.
 
-**Query Parameters:**
-
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `page` | integer | 1 | Page number |
-| `limit` | integer | 10 | Items per page |
-
-**Response (200):**
+| Param | Type | Default |
+|-------|------|---------|
+| `page` | integer | 1 |
+| `limit` | integer | 10 |
 
 ```json
 {
   "data": [
     {
       "id": "uuid",
-      "jobId": "uuid",
-      "createdAt": "2024-03-15T09:03:45Z",
-      "candidateCount": 8,
-      "topCandidates": [
+      "job_id": "uuid",
+      "created_at": "2026-07-03T09:00:03Z",
+      "candidate_count": 5,
+      "top_candidates": [
         {
           "ticker": "XXXX",
           "companyName": "PT Example Tbk",
           "compositeRank": 1,
-          "layer1Score": 0.82,
-          "layer2Score": 0.71,
-          "sentimentScore": 0.45
+          "layer1Score": "0.82",
+          "layer2Score": "0.71",
+          "sentimentScore": "0.45"
         }
       ],
-      "prompt": "Full prompt text here..."
+      "prompt": "Full prompt text...",
+      "status": "completed"
     }
   ],
   "meta": { "page": 1, "limit": 10, "total": 5, "totalPages": 1 }
 }
 ```
 
-#### `GET /analysis/results/:id`
+#### `GET /analysis/results/{result_id}`
 
-Get a single analysis result with full prompt text.
-
----
-
-### Scraper Control
-
-#### `POST /scraper/run`
-
-Trigger a manual scraping run.
-
-**Request Body:**
-
-```json
-{
-  "sources": ["eipo", "idx", "yfinance", "news"],
-  "tickers": ["XXXX", "YYYY"]
-}
-```
-
-- `sources`: Which scrapers to run. Default: all.
-- `tickers`: Optional. If omitted, scrapes all known candidates.
-
-**Response (202):**
-
-```json
-{
-  "jobId": "uuid",
-  "status": "queued"
-}
-```
-
-#### `GET /scraper/status`
-
-Get current scraper job statuses.
+Single analysis result with full prompt.
 
 ---
-
-## ML Service API (Internal)
-
-Base URL: `http://ml-service:8000/api/v1`
-
-This API is internal to the Docker network. Not exposed to the frontend.
-
-### Health
-
-#### `GET /health`
-
-**Response (200):**
-
-```json
-{
-  "status": "healthy",
-  "modelsLoaded": true,
-  "sentimentModelLoaded": true
-}
-```
 
 ### Prediction
 
-#### `POST /predict`
+#### `POST /predict/`
 
-Run ML inference on a batch of IPO candidates.
+Run ML predictions for specific candidates.
 
 **Request Body:**
 
 ```json
 {
-  "candidates": [
-    {
-      "ticker": "XXXX",
-      "fundamentals": {
-        "offerPrice": 500,
-        "sectorAvgPrice": 1200,
-        "underwriterTier": 1,
-        "totalAssets": 5000000000000,
-        "marketCap": 2000000000000,
-        "sector": "Technology",
-        "peRatio": 15.2,
-        "pbRatio": 2.1,
-        "roe": 0.18,
-        "debtToEquity": 0.45
-      },
-      "sentimentData": {
-        "headlines": ["Headline 1", "Headline 2"],
-        "newsCount": 12
-      },
-      "technicalData": {
-        "prices": [500, 520, 510, 530],
-        "volumes": [1000000, 800000, 900000, 1100000]
-      }
-    }
-  ]
+  "candidate_ids": ["uuid1"]
 }
 ```
-
-- `technicalData` is optional. If absent, Layer 2 uses fundamentals + sentiment + Layer 1 output only.
 
 **Response (200):**
 
 ```json
 {
-  "predictions": [
-    {
-      "ticker": "XXXX",
-      "layer1": {
-        "label": "outperform",
-        "probability": 0.82,
-        "featureImportance": {
-          "roe": 0.15,
-          "sentimentScore": 0.12,
-          "underwriterTier": 0.11
-        }
-      },
-      "layer2": {
-        "label": "outperform",
-        "probability": 0.71,
-        "featureImportance": {
-          "rsi": 0.18,
-          "peRatio": 0.14,
-          "layer1Score": 0.12
-        }
-      },
-      "sentiment": {
-        "score": 0.45,
-        "magnitude": 0.78,
-        "articleCount": 12
-      },
-      "compositeScore": 0.72,
-      "compositeRank": 1
-    }
-  ],
-  "modelVersions": {
-    "layer1": "v1.0.0",
-    "layer2": "v1.0.0",
-    "sentiment": "xlm-roberta-base"
-  }
+  "prediction_ids": ["uuid"],
+  "message": "Generated predictions for 1 candidates"
 }
 ```
 
+---
+
 ### Sentiment
 
-#### `POST /sentiment`
+#### `POST /sentiment/`
 
-Extract sentiment from headlines without running full prediction.
+Extract sentiment from text using XLM-RoBERTa.
 
 **Request Body:**
 
 ```json
 {
-  "headlines": [
-    { "text": "PT Example Tbk siap melantai di BEI", "source": "google_news" },
-    { "text": "IPO Example disambut antusias investor", "source": "cnbc_indonesia" }
-  ]
+  "texts": ["IPO Example disambut antusias investor"]
 }
 ```
 
@@ -332,35 +216,51 @@ Extract sentiment from headlines without running full prediction.
 ```json
 {
   "results": [
-    { "text": "...", "score": 0.45, "magnitude": 0.78, "label": "positive" },
-    { "text": "...", "score": 0.62, "magnitude": 0.85, "label": "positive" }
-  ],
-  "aggregated": {
-    "meanScore": 0.535,
-    "meanMagnitude": 0.815,
-    "positiveCount": 2,
-    "negativeCount": 0,
-    "neutralCount": 0
-  }
+    {
+      "text": "IPO Example disambut antusias investor",
+      "sentiment_score": 0.62,
+      "magnitude": 0.85,
+      "label": "positive"
+    }
+  ]
 }
 ```
 
 ---
 
-## Error Response Format
+### Scraper
 
-All endpoints use a consistent error format:
+#### `POST /scraper/run`
+
+Trigger scraping from configured sources.
 
 ```json
 {
-  "statusCode": 400,
-  "message": "Validation error: ticker is required",
-  "error": "Bad Request"
+  "sources": ["eipo", "yfinance", "news"],
+  "tickers": ["XXXX"]
 }
 ```
 
-HTTP status codes used: 200, 202, 400, 404, 422, 500, 503.
+#### `GET /scraper/status`
 
-## Idempotency
+Current scraper job counts (waiting, active, completed, failed).
 
-Per API-001: all mutation endpoints (POST) accept an optional `Idempotency-Key` header. If provided, duplicate requests with the same key return the original response without re-executing the operation.
+---
+
+## Error Format
+
+FastAPI validation errors:
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "top_n"],
+      "msg": "value is not a valid integer",
+      "type": "type_error.integer"
+    }
+  ]
+}
+```
+
+HTTP status codes: 200, 400, 404, 422, 500.

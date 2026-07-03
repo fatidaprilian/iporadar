@@ -1,49 +1,49 @@
-# NestJS API Dockerfile
+# Python ML Service Dockerfile
 # Multi-stage build per DOCK-001
 
 # --- Development stage ---
-FROM node:22-slim AS development
+FROM python:3.11-slim AS development
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+# Install system dependencies for ML libraries
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    playwright install chromium --with-deps
 
 COPY . .
 
-EXPOSE 3001
+EXPOSE 8000
 
-CMD ["npm", "run", "start:dev"]
-
-# --- Build stage ---
-FROM node:22-slim AS build
-
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # --- Production stage ---
-FROM node:22-slim AS production
+FROM python:3.11-slim AS production
 
-RUN addgroup --system --gid 1001 nodejs && \
+RUN addgroup --system --gid 1001 mlservice && \
     adduser --system --uid 1001 appuser
 
 WORKDIR /app
 
-COPY --from=build /app/package.json /app/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /app/dist ./dist
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    playwright install chromium --with-deps
+
+COPY . .
 
 USER appuser
 
-EXPOSE 3001
+EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD node -e "const http = require('http'); http.get('http://localhost:3001/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"
 
-CMD ["node", "dist/main.js"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

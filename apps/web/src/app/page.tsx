@@ -1,64 +1,127 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect } from "react";
+import { CandidateTable } from "@/components/CandidateTable";
+import { AnalysisPanel } from "@/components/AnalysisPanel";
+import { useTheme } from "@/components/ThemeProvider";
+import { api, IpoCandidate, AnalysisResult } from "@/lib/api";
+import { Moon, Sun, Loader2, Play } from "lucide-react";
+
+export default function Dashboard() {
+  const { theme, toggleTheme } = useTheme();
+  
+  const [candidates, setCandidates] = useState<IpoCandidate[]>([]);
+  const [results, setResults] = useState<AnalysisResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  useEffect(() => {
+    // Phase 1 stub data fetching
+    const fetchData = async () => {
+      try {
+        const c = await api.getCandidates().catch(() => []);
+        const r = await api.getLatestResults().catch(() => []);
+        setCandidates(c);
+        setResults(r);
+      } catch (err) {
+        console.error("Error fetching data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleTriggerAnalysis = async () => {
+    setAnalyzing(true);
+    try {
+      const { jobId } = await api.triggerAnalysis(5);
+
+      const poll = async () => {
+        for (let i = 0; i < 30; i++) {
+          await new Promise((r) => setTimeout(r, 1000));
+          const status = await api.getAnalysisStatus(jobId);
+          if (status.status === "completed" || status.status === "failed") {
+            break;
+          }
+        }
+        const r = await api.getLatestResults().catch(() => []);
+        setResults(r);
+        setAnalyzing(false);
+      };
+      poll();
+    } catch (err) {
+      console.error("Error triggering analysis", err);
+      setAnalyzing(false);
+    }
+  };
+
+  const latestResult = results.length > 0 ? results[0] : null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full gap-8">
+      {/* Header */}
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">IPO Radar</h1>
+          <p className="text-muted-foreground mt-1">
+            BEI IPO candidate analysis and AI prompt generator
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-card border border-border text-foreground hover:bg-muted transition-colors"
+            aria-label="Toggle dark mode"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
         </div>
+      </header>
+
+      {/* Main Content Grid */}
+      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-[600px]">
+        {/* Left Column: Candidates */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Active Candidates</h2>
+            <button
+              onClick={handleTriggerAnalysis}
+              disabled={analyzing || loading || candidates.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+              {analyzing ? "Analyzing..." : "Run Analysis Cycle"}
+            </button>
+          </div>
+          
+          <div className="flex-1 bg-card rounded-xl border border-border p-4 shadow-sm">
+            {loading ? (
+              <div className="flex items-center justify-center h-48">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <CandidateTable candidates={candidates} />
+            )}
+          </div>
+        </section>
+
+        {/* Right Column: Analysis Panel */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Latest Generation</h2>
+          </div>
+          
+          <div className="flex-1 flex flex-col min-h-0">
+            {loading ? (
+              <div className="flex-1 bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <AnalysisPanel result={latestResult} />
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );

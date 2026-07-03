@@ -10,3 +10,4 @@ Routing map for IPO Radar project documentation. Use this to find the right docu
 | [api-contract.md](api-contract.md) | REST API specifications for NestJS API and ML service | Building or consuming API endpoints, frontend integration | Active | 2026-06-24 |
 | [database-schema.md](database-schema.md) | PostgreSQL tables, relationships, constraints | Adding database features, writing queries, migrations | Active | 2026-06-24 |
 | [DESIGN.md](DESIGN.md) | Dashboard UI scope, design direction, component inventory | Building frontend components, UI/UX decisions | Active | 2026-06-24 |
+| [project-status.md](project-status.md) | Project status, blueprint, phases, deployment spec | Checking project progress, onboarding, planning next phase | Active | 2026-07-03 |

@@ -18,11 +18,9 @@ This is a decision support tool, not an oracle. The final investment decision al
 
 | Service | Stack | Purpose |
 |---------|-------|---------|
-| `api` | NestJS (Node.js 22) | REST API, scraper orchestration, scheduling, prompt builder |
-| `ml-service` | FastAPI (Python 3.11) | ML inference, XLM-RoBERTa sentiment, feature engineering |
+| `api` | FastAPI (Python 3.11) | REST API, ML inference, XLM-RoBERTa sentiment, scraper, orchestration |
 | `web` | Node.js 22 (Next.js) | Dashboard frontend |
 | `postgres` | PostgreSQL 16 | Data persistence |
-| `redis` | Redis 7 | Cache, Bull Queue broker |
 
 All services run via Docker Compose.
 
@@ -42,8 +40,7 @@ docker compose up -d
 
 Services will be available at:
 - Dashboard: http://localhost:3000
-- API: http://localhost:3001
-- ML Service: http://localhost:8000
+- API (FastAPI): http://localhost:8000
 
 ## Configuration
 

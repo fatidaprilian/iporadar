@@ -12,16 +12,13 @@ graph TB
     end
 
     subgraph Docker["Docker Compose"]
-        subgraph API["api (NestJS)"]
-            Scraper["Scraper Module"]
-            PriceFetcher["Price Fetcher"]
-            NewsScraper["News Scraper"]
-            Scheduler["Bull Queue Scheduler"]
+        subgraph API["api (FastAPI Monolith)"]
+            Scraper["Python Scraper Module"]
+            PriceFetcher["Price Fetcher (yfinance)"]
+            NewsScraper["News Scraper (feedparser)"]
+            Scheduler["FastAPI BackgroundTasks"]
             PromptBuilder["Prompt Builder"]
             APIRoutes["REST API"]
-        end
-
-        subgraph ML["ml-service (FastAPI)"]
             FeatEng["Feature Engineering"]
             Sentiment["XLM-RoBERTa Sentiment"]
             Layer1["Layer 1: XGBoost/Bagging"]
@@ -35,8 +32,7 @@ graph TB
             History["Recommendation History"]
         end
 
-        PG["PostgreSQL 16"]
-        RD["Redis 7"]
+        PG["PostgreSQL 16\n(or SQLite)"]
     end
 
     subgraph User["User Workflow"]
@@ -54,7 +50,6 @@ graph TB
     PriceFetcher --> PG
     NewsScraper --> PG
 
-    Scheduler --> RD
     Scheduler --> APIRoutes
 
     PG --> FeatEng
@@ -66,7 +61,6 @@ graph TB
     Layer1 --> Scoring
     Layer2 --> Scoring
 
-    APIRoutes --> ML
     Scoring --> APIRoutes
     APIRoutes --> PG
     APIRoutes --> PromptBuilder
@@ -87,42 +81,39 @@ graph TB
 sequenceDiagram
     actor User
     participant Web as Next.js Dashboard
-    participant API as NestJS API
-    participant Queue as Bull Queue (Redis)
-    participant Scraper as Scraper Module
+    participant API as FastAPI Monolith
+    participant BG as BackgroundTasks
     participant PG as PostgreSQL
-    participant ML as ML Service (FastAPI)
-    participant PB as Prompt Builder
 
     User->>Web: Trigger analysis
-    Web->>API: POST /analysis/trigger
-    API->>Queue: Enqueue analysis job
+    Web->>API: POST /api/v1/analysis/trigger
+    API->>BG: Spawn background task
 
-    Note over Queue,Scraper: Phase 1: Data Collection
-    Queue->>Scraper: Execute scraping job
-    Scraper->>PG: Store IPO fundamental data
-    Scraper->>PG: Store price data (yfinance)
-    Scraper->>PG: Store news articles
+    Note over BG,PG: Phase 1: Data Collection (Optional if cached)
+    BG->>BG: Execute scraping job (Playwright/RSS)
+    BG->>PG: Store IPO fundamental data
+    BG->>PG: Store price data (yfinance)
+    BG->>PG: Store news articles
 
-    Note over API,ML: Phase 2: ML Inference
-    API->>ML: POST /predict (candidate data)
-    ML->>PG: Read features (bulk)
-    ML->>ML: XLM-RoBERTa sentiment extraction
-    ML->>ML: Feature engineering
-    ML->>ML: Layer 1 inference (first-day)
-    ML->>ML: Layer 2 inference (30-day)
-    ML->>ML: Composite scoring & ranking
-    ML-->>API: Ranked candidates + scores
+    Note over BG,PG: Phase 2: ML Inference
+    BG->>PG: Read features (bulk)
+    BG->>BG: XLM-RoBERTa sentiment extraction
+    BG->>BG: Feature engineering
+    BG->>BG: Layer 1 inference (first-day)
+    BG->>BG: Layer 2 inference (30-day)
+    BG->>BG: Composite scoring & ranking
 
-    Note over API,PB: Phase 3: Prompt Generation
-    API->>PG: Store predictions
-    API->>PB: Build prompt (top N candidates)
-    PB-->>API: Structured prompt text
+    Note over BG,PG: Phase 3: Prompt Generation
+    BG->>PG: Store predictions
+    BG->>BG: Build prompt (top N candidates)
 
-    API->>PG: Store analysis result + prompt
-    API-->>Web: Analysis complete
+    BG->>PG: Store analysis result + prompt
+    BG-->>API: Task complete
 
     Note over User,Web: Phase 4: User Action
+    User->>Web: Check results
+    Web->>API: GET /api/v1/analysis/results
+    API-->>Web: Return results + prompt
     Web->>User: Display results + prompt
     User->>User: Copy prompt
     User->>User: Paste into external LLM
@@ -206,6 +197,6 @@ Candidates are ranked by composite score descending. Top N (default: 3-5) are in
 | Trigger | Mechanism | When |
 |---------|-----------|------|
 | Manual | User clicks "Run Analysis" in dashboard | On demand |
-| Scheduled | Bull Queue cron job | Configurable (default: daily at market open, 09:00 WIB) |
+| Scheduled | FastAPI APScheduler/Cron (Phase 4) | Configurable (default: daily at market open, 09:00 WIB) |
 
 Both triggers execute the same analysis cycle sequence. Scheduled runs store results and the user reviews them later.
