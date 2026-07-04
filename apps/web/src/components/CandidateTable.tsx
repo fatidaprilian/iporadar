@@ -9,9 +9,7 @@ export function CandidateTable({ candidates }: { candidates: IpoCandidate[] }) {
   if (!candidates || candidates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-3">
-          <TrendingUp className="w-6 h-6 text-muted-foreground opacity-50" />
-        </div>
+        <TrendingUp className="w-8 h-8 text-muted-foreground/30 mb-3" />
         <p className="text-muted-foreground text-sm">No IPO candidates found.</p>
         <p className="text-xs text-muted-foreground/70 mt-1">Run the scraper to fetch data.</p>
       </div>
@@ -33,23 +31,17 @@ export function CandidateTable({ candidates }: { candidates: IpoCandidate[] }) {
         </thead>
         <tbody className="divide-y divide-border/50">
           {candidates.map((c) => (
-            <tr key={c.id} className="hover:bg-muted/30 transition-colors group">
-              <td className="px-4 py-3">
-                <span className="font-bold text-primary group-hover:underline">{c.ticker}</span>
-              </td>
-              <td className="px-4 py-3 font-medium text-card-foreground max-w-40 truncate" title={c.company_name}>
+            <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+              <td className="px-4 py-3 font-bold text-primary">{c.ticker}</td>
+              <td className="px-4 py-3 font-medium text-card-foreground max-w-48 truncate" title={c.company_name}>
                 {c.company_name}
               </td>
+              <td className="px-4 py-3 text-muted-foreground text-xs">{c.sector}</td>
               <td className="px-4 py-3">
-                <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
-                  {c.sector}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
                   c.status === "upcoming"
-                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    ? "bg-blue-500/10 text-blue-500 dark:text-blue-400"
+                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 }`}>
                   {c.status === "upcoming" ? (
                     <Clock className="w-3 h-3" />

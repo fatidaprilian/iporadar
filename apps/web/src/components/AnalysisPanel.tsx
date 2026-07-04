@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AnalysisResult } from "@/lib/api";
-import { Copy, CheckCircle2, Sparkles } from "lucide-react";
+import { Copy, CheckCircle2, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
@@ -11,10 +11,8 @@ export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center p-12 rounded-xl bg-card border border-dashed border-border text-muted-foreground h-full min-h-100">
-        <div className="w-16 h-16 mb-4 rounded-2xl bg-primary/5 flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-primary/30" />
-        </div>
-        <p className="font-semibold text-foreground">No Analysis Yet</p>
+        <FileText className="w-8 h-8 text-muted-foreground/30 mb-3" />
+        <p className="font-medium text-foreground">No Analysis Yet</p>
         <p className="text-sm mt-1 text-center max-w-sm">
           Click "Run Analysis" to generate a structured LLM prompt from candidate data.
         </p>
@@ -31,15 +29,15 @@ export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
   const isBacktest = result.prompt.includes("Mode: BACKTEST");
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm glow-primary flex flex-col h-full max-h-200">
-      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
+    <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col h-full max-h-200">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <div>
           <h3 className="font-semibold text-foreground flex items-center gap-2">
             LLM Analysis Prompt
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
               isBacktest
-                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
             }`}>
               {isBacktest ? "Backtest" : "Ready"}
             </span>
@@ -52,9 +50,9 @@ export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
         </div>
         <button
           onClick={handleCopy}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
             copied
-              ? "bg-emerald-500 text-white"
+              ? "bg-emerald-600 text-white"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
         >

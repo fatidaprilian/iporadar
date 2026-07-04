@@ -58,34 +58,10 @@ export default function Dashboard() {
   const listedCount = candidates.filter((c) => c.status === "listed").length;
 
   const stats = [
-    {
-      label: "Total Candidates",
-      value: candidates.length,
-      icon: BarChart3,
-      color: "text-primary",
-      bg: "bg-primary/10",
-    },
-    {
-      label: "Upcoming IPOs",
-      value: upcomingCount,
-      icon: Clock,
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-    },
-    {
-      label: "Listed",
-      value: listedCount,
-      icon: TrendingUp,
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-    },
-    {
-      label: "Analysis Runs",
-      value: results.length,
-      icon: Zap,
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-    },
+    { label: "Total Candidates", value: candidates.length, icon: BarChart3 },
+    { label: "Upcoming IPOs", value: upcomingCount, icon: Clock },
+    { label: "Listed", value: listedCount, icon: TrendingUp },
+    { label: "Analysis Runs", value: results.length, icon: Zap },
   ];
 
   return (
@@ -94,7 +70,7 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full gap-6">
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
             <p className="text-muted-foreground mt-1 text-sm">
               IPO screening & ML-powered analysis
             </p>
@@ -102,7 +78,7 @@ export default function Dashboard() {
           <button
             onClick={handleTriggerAnalysis}
             disabled={analyzing || loading || candidates.length === 0}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {analyzing ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -113,19 +89,16 @@ export default function Dashboard() {
           </button>
         </header>
 
-        {/* Stats row */}
         {!loading && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="bg-card rounded-xl border border-border p-4 flex items-center gap-4 shadow-sm"
+                className="bg-card rounded-lg border border-border px-4 py-3 flex items-center gap-3"
               >
-                <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>
-                  <s.icon className={`w-5 h-5 ${s.color}`} />
-                </div>
+                <s.icon className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-xl font-bold text-foreground">{s.value}</p>
                   <p className="text-xs text-muted-foreground">{s.label}</p>
                 </div>
               </div>
@@ -135,11 +108,11 @@ export default function Dashboard() {
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-150">
           <section className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Active Candidates</h2>
-            <div className="flex-1 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Active Candidates</h2>
+            <div className="flex-1 bg-card rounded-xl border border-border overflow-hidden">
               {loading ? (
                 <div className="flex items-center justify-center h-48">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
                 <CandidateTable candidates={candidates} />
@@ -148,11 +121,11 @@ export default function Dashboard() {
           </section>
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Latest Generation</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Latest Generation</h2>
             <div className="flex-1 flex flex-col min-h-0">
               {loading ? (
-                <div className="flex-1 bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-center min-h-100">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="flex-1 bg-card rounded-xl border border-border flex items-center justify-center min-h-100">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
                 <AnalysisPanel result={latestResult} />
