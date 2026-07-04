@@ -115,7 +115,7 @@ export default function Dashboard() {
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <CandidateTable candidates={candidates} />
+                <CandidateTable candidates={candidates} compact />
               )}
             </div>
           </section>
