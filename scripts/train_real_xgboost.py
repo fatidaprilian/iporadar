@@ -163,13 +163,13 @@ def main():
     for i in sorted_idx[:5]:
         print(f"  {feature_names[i]}: {importances[i]:.3f}")
 
-    # Save models
+    # Save models in the format expected by XGBoostModelWrapper
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
     with open(MODEL_DIR / "layer1_xgb.pkl", "wb") as f:
-        pickle.dump(l1_model, f)
+        pickle.dump({"model": l1_model.get_booster(), "feature_names": feature_names}, f)
     with open(MODEL_DIR / "layer2_xgb.pkl", "wb") as f:
-        pickle.dump(l2_model, f)
+        pickle.dump({"model": l2_model.get_booster(), "feature_names": feature_names}, f)
     with open(MODEL_DIR / "sector_encoder.pkl", "wb") as f:
         pickle.dump(sector_encoder, f)
 

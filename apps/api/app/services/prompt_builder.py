@@ -63,11 +63,15 @@ def _format_candidate(candidate, prediction, rank: int, total: int) -> str:
     offer_price = f"{c.offer_price_idr:,}".replace(",", ".") if c.offer_price_idr else "N/A"
     underwriter_info = f"{c.underwriter} (Tier-{c.underwriter_tier})" if c.underwriter else "N/A"
 
+    status_label = "SUDAH LISTING" if getattr(c, 'status', '') == 'listed' else "UPCOMING"
+    date_label = "Tanggal listing" if status_label == "SUDAH LISTING" else "Rencana listing"
+
     return f"""Kandidat {rank}:
   Kode: {c.ticker}
   Nama perusahaan: {c.company_name}
+  Status: {status_label}
   Sektor: {c.sector}
-  Tanggal listing: {c.listing_date}
+  {date_label}: {c.listing_date}
   Harga penawaran: Rp {offer_price}
   Composite rank: {rank} dari {total}
   Layer 1 score: {l1_score} (first-day outperform probability)
@@ -81,41 +85,105 @@ def _format_candidate(candidate, prediction, rank: int, total: int) -> str:
 def build_prompt(ranked_candidates: list[dict], analysis_date: datetime) -> str:
     """
     Build the structured LLM prompt.
-    
+
     ranked_candidates: list of {"candidate": IpoCandidate, "prediction": Prediction, "rank": int}
     """
     date_str = analysis_date.strftime("%d/%m/%Y")
     total = len(ranked_candidates)
+
+    has_upcoming = any(
+        rc["candidate"].status == "upcoming" for rc in ranked_candidates
+    )
+    all_listed = all(
+        rc["candidate"].status == "listed" for rc in ranked_candidates
+    )
 
     candidate_blocks = "\n\n".join(
         _format_candidate(rc["candidate"], rc["prediction"], rc["rank"], total)
         for rc in ranked_candidates
     )
 
-    return f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
+    if all_listed:
+        preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
+
+KONTEKS: Data berikut adalah IPO yang SUDAH LISTING di BEI.
+Sistem ML kami menggunakan data historis ini untuk validasi model.
+Tugasmu adalah menganalisa kandidat-kandidat ini SEOLAH-OLAH mereka
+belum listing (analisa prospektif), lalu bandingkan prediksi ML
+dengan performa aktual yang bisa kamu verifikasi via web search.
+
+Tanggal analisa: {date_str}
+Mode: BACKTEST (validasi model ML)"""
+    elif has_upcoming:
+        preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
 Tugasmu adalah membandingkan kandidat IPO berikut dan memilih SATU
 yang paling layak dibeli saat ini berdasarkan analisa menyeluruh.
 
 Tanggal analisa: {date_str}
+Mode: LIVE (kandidat aktif)"""
+    else:
+        preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
+Tugasmu adalah membandingkan kandidat IPO berikut dan memilih SATU
+yang paling layak dibeli saat ini berdasarkan analisa menyeluruh.
 
----
+Tanggal analisa: {date_str}"""
 
-PANDUAN BACA DATA:
-- Layer 1 Score: probabilitas outperform IHSG di hari pertama listing
-- Layer 2 Score: probabilitas outperform IHSG dalam 30 hari post-listing
-- Sentiment Score: -1.0 (sangat negatif) sampai 1.0 (sangat positif)
-- Composite Rank: ranking final dari sistem ML (1 = terbaik)
-- Underwriter Tier: Tier-1 (bulge bracket BEI), Tier-2 (mid), Tier-3 (kecil)
+    if all_listed:
+        instructions = """INSTRUKSI ANALISA (MODE BACKTEST):
 
----
+Langkah 1 -- Web Search (WAJIB)
+Untuk setiap kandidat, cari:
+  - Performa saham sejak listing (harga saat ini vs harga penawaran)
+  - Berita material tentang perusahaan pasca-listing
+  - Kondisi sektor saat kandidat listing vs sekarang
 
-KANDIDAT IPO:
+Langkah 2 -- Evaluasi Prospektif (Seolah Belum Listing)
+Berdasarkan data fundamental di bawah, evaluasi seolah-olah IPO belum terjadi:
+  - Valuasi relatif: bandingkan P/E dan P/B terhadap rata-rata sektor
+  - Kualitas bisnis: ROE, revenue growth, debt-to-equity
+  - Kualitas IPO: reputasi underwriter, besaran offer
+  - Red flags:
+      * P/E lebih dari 2x rata-rata sektor tanpa justifikasi growth
+      * ROE negatif
+      * Underwriter Tier-3 dengan track record buruk
+      * Debt-to-equity di atas 2.0 untuk sektor non-finansial
 
-{candidate_blocks}
+Langkah 3 -- Bandingkan Prediksi ML vs Realita
+  - ML score tinggi → apakah saham benar outperform setelah listing?
+  - ML score rendah → apakah saham benar underperform?
+  - Identifikasi di mana model ML benar dan di mana salah
 
----
+Langkah 4 -- Perbandingan Antar Kandidat
+Buat tabel: ticker, ML score, prediksi (beli/tidak), realita (naik/turun),
+akurasi prediksi.
 
-INSTRUKSI ANALISA:
+Langkah 5 -- Kesimpulan Backtest
+  - Seberapa akurat model ML berdasarkan sampel ini?
+  - Kandidat mana yang seharusnya dibeli (berdasarkan data aktual)?
+  - Rekomendasi perbaikan model jika ada pola kesalahan"""
+
+        output_format = """OUTPUT FORMAT:
+
+RINGKASAN BACKTEST:
+[Tabel perbandingan prediksi ML vs performa aktual per kandidat]
+
+AKURASI MODEL:
+[Berapa persen prediksi ML yang benar untuk sampel ini]
+
+KANDIDAT TERBAIK (RETROSPEKTIF):
+[Kandidat mana yang faktanya paling menguntungkan, dengan data aktual]
+
+ANALISA KESALAHAN MODEL:
+[Di mana ML salah prediksi dan kemungkinan penyebabnya]
+
+SUMBER DATA:
+[URL atau judul berita/data yang digunakan]
+
+DISCLAIMER:
+Output ini adalah hasil backtest untuk validasi model ML, bukan
+saran investasi. Data yang dianalisa adalah IPO yang sudah listing."""
+    else:
+        instructions = """INSTRUKSI ANALISA:
 
 Langkah 1 -- Web Search (WAJIB, lakukan sebelum analisa apapun)
 Untuk setiap kandidat, cari:
@@ -163,11 +231,9 @@ Catatan: Jangan menebak harga eksak atau tanggal pasti, gunakan persentase dari 
 Langkah 7 -- Keputusan Final
 Pilih SATU kandidat terbaik. Jika tidak ada kandidat yang layak
 (semua punya red flag material), nyatakan "TIDAK ADA REKOMENDASI"
-dan jelaskan alasannya. Jangan memaksakan rekomendasi.
+dan jelaskan alasannya. Jangan memaksakan rekomendasi."""
 
----
-
-OUTPUT FORMAT:
+        output_format = """OUTPUT FORMAT:
 
 REKOMENDASI: [KODE.JK atau "TIDAK ADA REKOMENDASI"]
 
@@ -191,3 +257,28 @@ DISCLAIMER:
 Output ini adalah hasil analisa sistem decision support dan bukan
 saran investasi. Keputusan beli/tidak beli sepenuhnya tanggung jawab
 investor. Selalu lakukan riset mandiri tambahan sebelum membeli saham."""
+
+    return f"""{preamble}
+
+---
+
+PANDUAN BACA DATA:
+- Layer 1 Score: probabilitas outperform IHSG di hari pertama listing
+- Layer 2 Score: probabilitas outperform IHSG dalam 30 hari post-listing
+- Sentiment Score: -1.0 (sangat negatif) sampai 1.0 (sangat positif)
+- Composite Rank: ranking final dari sistem ML (1 = terbaik)
+- Underwriter Tier: Tier-1 (bulge bracket BEI), Tier-2 (mid), Tier-3 (kecil)
+
+---
+
+KANDIDAT IPO:
+
+{candidate_blocks}
+
+---
+
+{instructions}
+
+---
+
+{output_format}"""
