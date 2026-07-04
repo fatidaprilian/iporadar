@@ -9,12 +9,12 @@
 | **Phase 1: Data Foundation & Infrastructure** | Done | PostgreSQL schema, SQLAlchemy ORM, FastAPI boilerplate, Next.js dashboard |
 | **Phase 2: Scraping & ML Pipeline** | Done | Playwright e-IPO scraper, RSS news scraper, yfinance, XLM-RoBERTa sentiment, XGBoost wrappers, ML endpoints |
 | **Phase 2.5: Monolith Migration** | Done | Menghapus NestJS & Redis, memindahkan semua logika ke FastAPI |
-| **Phase 3: Data Collection & ML Training** | In Progress | Validasi scraper e-IPO, kumpulkan dataset historis, train model XGBoost |
-| **Phase 4: Polish, Testing, Deployment** | Not Started | End-to-end testing, VPS deployment |
+| **Phase 3: Data Collection & ML Training** | Done | Synthetic dataset, XGBoost trained, scraper persists to DB with sentiment |
+| **Phase 4: Polish, Testing, Deployment** | In Progress | Frontend pages done, deployment belum |
 
-**Yang sudah jalan:** Infrastruktur backend (FastAPI Monolith) sudah mapan. Alur utama dari scraping → ML inference → prompt generation → dashboard UI sudah terintegrasi.
+**Yang sudah jalan:** Semua backend sudah lengkap — scraper (e-IPO, yfinance, news) persist ke DB dengan sentiment analysis, ML pipeline (XGBoost L1/L2 + XLM-RoBERTa), prompt generation. Frontend 4 halaman (Dashboard, Candidates, History, Result Detail) dengan navigasi, filter, pagination.
 
-**Yang belum:** Model XGBoost belum di-train (butuh dataset ~300 IPO historis), scraper e-IPO butuh divalidasi terhadap website live, dan frontend butuh penyesuaian detail halaman.
+**Yang belum:** Docker production config, VPS deployment, real data training (saat ini pakai synthetic).
 
 ---
 
@@ -90,9 +90,9 @@ Layer 1 (XGBoost/Bagging)          Layer 2 (GBT)
 | Page | Status |
 |------|--------|
 | Dashboard (Home) | Done |
-| Analysis Result Detail | Not Started |
-| History | Not Started |
-| Candidate Browser | Not Started |
+| Analysis Result Detail | Done |
+| History | Done |
+| Candidate Browser | Done |
 
 ## Deployment Spec
 
@@ -106,14 +106,7 @@ Layer 1 (XGBoost/Bagging)          Layer 2 (GBT)
 
 ## Next Steps
 
-### Phase 3 (Current)
-1. Validasi scraper e-IPO (`scripts/test_scraper.py`)
-2. Kumpulkan dataset training (`scripts/seed_historical_data.py`)
-3. Train XGBoost (`scripts/train_xgboost.py`)
-
-### Phase 4
-4. Polish Prompt Builder (edge cases)
-5. Frontend pages (detail, history, browser)
-6. End-to-end smoke test
-7. Docker production config
-8. VPS deployment
+### Phase 4 (Current)
+1. Docker production config (multi-stage, non-root, health checks)
+2. VPS deployment
+3. Real data training with actual IPO historis BEI
