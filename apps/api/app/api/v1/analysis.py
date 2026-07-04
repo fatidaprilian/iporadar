@@ -90,7 +90,7 @@ def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int):
                 .all()
             )
             from datetime import timedelta
-            cutoff = datetime.now(timezone.utc).date() - timedelta(days=90)
+            cutoff = datetime.now(timezone.utc).date() - timedelta(days=730)
             recent = (
                 db.query(IpoCandidate)
                 .options(joinedload(IpoCandidate.fundamental), joinedload(IpoCandidate.news_articles))
