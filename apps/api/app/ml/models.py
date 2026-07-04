@@ -13,15 +13,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
 SECTOR_PROFILES = {
-    "Mining": {"sector_avg_pe": 12.0, "sector_avg_pb": 2.0},
+    "Basic Materials": {"sector_avg_pe": 12.0, "sector_avg_pb": 2.0},
     "Technology": {"sector_avg_pe": 28.0, "sector_avg_pb": 4.5},
-    "Banking": {"sector_avg_pe": 11.0, "sector_avg_pb": 1.5},
-    "Consumer": {"sector_avg_pe": 20.0, "sector_avg_pb": 3.0},
-    "Property": {"sector_avg_pe": 12.0, "sector_avg_pb": 1.2},
-    "Healthcare": {"sector_avg_pe": 24.0, "sector_avg_pb": 3.5},
-    "Industrial": {"sector_avg_pe": 13.0, "sector_avg_pb": 1.8},
-    "Infrastructure": {"sector_avg_pe": 16.0, "sector_avg_pb": 2.2},
-    "Energy": {"sector_avg_pe": 9.0, "sector_avg_pb": 1.5},
+    "Financial Services": {"sector_avg_pe": 10.0, "sector_avg_pb": 1.5},
+    "Consumer Cyclical": {"sector_avg_pe": 22.0, "sector_avg_pb": 3.2},
+    "Consumer Staples": {"sector_avg_pe": 18.0, "sector_avg_pb": 2.8},
+    "Property": {"sector_avg_pe": 15.0, "sector_avg_pb": 1.8},
+    "Industrials": {"sector_avg_pe": 14.0, "sector_avg_pb": 2.2},
+    "Energy": {"sector_avg_pe": 10.0, "sector_avg_pb": 1.5},
+    "Utilities": {"sector_avg_pe": 16.0, "sector_avg_pb": 2.0},
+    "Healthcare": {"sector_avg_pe": 25.0, "sector_avg_pb": 3.5},
+    "Telecommunications": {"sector_avg_pe": 18.0, "sector_avg_pb": 2.5},
+    "Mining": {"sector_avg_pe": 10.0, "sector_avg_pb": 1.8},
 }
 
 
@@ -42,11 +45,11 @@ def build_feature_vector(candidate, fundamental) -> dict:
     Accepts either ORM objects or plain dicts.
     """
     if hasattr(candidate, "__dict__"):
-        sector = candidate.sector or "Industrial"
+        sector = candidate.sector or "Industrials"
         offer_price = candidate.offer_price_idr or 0
         uw_tier = candidate.underwriter_tier or 2
     else:
-        sector = candidate.get("sector", "Industrial")
+        sector = candidate.get("sector", "Industrials")
         offer_price = candidate.get("offer_price_idr", 0)
         uw_tier = candidate.get("underwriter_tier", 2)
 
@@ -67,13 +70,13 @@ def build_feature_vector(candidate, fundamental) -> dict:
         s_pe = fundamental.get("sector_avg_pe")
         s_pb = fundamental.get("sector_avg_pb")
 
-    profile = SECTOR_PROFILES.get(sector, SECTOR_PROFILES["Industrial"])
+    profile = SECTOR_PROFILES.get(sector, SECTOR_PROFILES["Industrials"])
     sector_avg_pe = s_pe or profile["sector_avg_pe"]
     sector_avg_pb = s_pb or profile["sector_avg_pb"]
 
     pe_vs_sector = pe / sector_avg_pe if sector_avg_pe else 1.0
     pb_vs_sector = pb / sector_avg_pb if sector_avg_pb else 1.0
-    offer_price_log = math.log1p(offer_price)
+    offer_price_log = math.log(max(offer_price, 1))
 
     sector_encoded = 0
     if _sector_encoder is not None:

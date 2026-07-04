@@ -1,12 +1,13 @@
 """Seed the database with real IPO candidates from the training dataset.
 
-Replaces synthetic data with actual BEI IPO tickers, including fundamentals.
+Uses real fundamentals from data/real_fundamentals.json for deterministic scores.
 
 Usage:
     python3 scripts/seed_real_candidates.py
 """
 
 import csv
+import json
 import math
 import sys
 import uuid
@@ -17,20 +18,30 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "apps" / "api"))
 
 INPUT_CSV = ROOT / "data" / "ipo_training_dataset.csv"
+FUNDAMENTALS_JSON = ROOT / "data" / "real_fundamentals.json"
 
 SECTOR_PROFILES = {
-    "Mining": {"pe": 12.0, "pb": 2.0, "roe": 0.15, "de": 0.8, "rev_growth": 0.10, "avg_pe": 12.0, "avg_pb": 2.0},
+    "Basic Materials": {"pe": 12.0, "pb": 2.0, "roe": 0.15, "de": 0.8, "rev_growth": 0.10, "avg_pe": 12.0, "avg_pb": 2.0},
     "Technology": {"pe": 28.0, "pb": 4.5, "roe": 0.12, "de": 0.3, "rev_growth": 0.30, "avg_pe": 28.0, "avg_pb": 4.5},
-    "Banking": {"pe": 10.0, "pb": 1.5, "roe": 0.14, "de": 5.0, "rev_growth": 0.12, "avg_pe": 10.0, "avg_pb": 1.5},
-    "Consumer Goods": {"pe": 20.0, "pb": 3.0, "roe": 0.18, "de": 0.5, "rev_growth": 0.15, "avg_pe": 20.0, "avg_pb": 3.0},
+    "Financial Services": {"pe": 10.0, "pb": 1.5, "roe": 0.14, "de": 5.0, "rev_growth": 0.12, "avg_pe": 10.0, "avg_pb": 1.5},
+    "Consumer Cyclical": {"pe": 22.0, "pb": 3.2, "roe": 0.16, "de": 0.5, "rev_growth": 0.18, "avg_pe": 22.0, "avg_pb": 3.2},
+    "Consumer Staples": {"pe": 18.0, "pb": 2.8, "roe": 0.18, "de": 0.4, "rev_growth": 0.12, "avg_pe": 18.0, "avg_pb": 2.8},
     "Property": {"pe": 15.0, "pb": 1.8, "roe": 0.10, "de": 1.2, "rev_growth": 0.08, "avg_pe": 15.0, "avg_pb": 1.8},
-    "Infrastructure": {"pe": 14.0, "pb": 2.2, "roe": 0.12, "de": 1.0, "rev_growth": 0.10, "avg_pe": 14.0, "avg_pb": 2.2},
+    "Industrials": {"pe": 14.0, "pb": 2.2, "roe": 0.12, "de": 1.0, "rev_growth": 0.10, "avg_pe": 14.0, "avg_pb": 2.2},
     "Energy": {"pe": 10.0, "pb": 1.5, "roe": 0.16, "de": 0.7, "rev_growth": 0.12, "avg_pe": 10.0, "avg_pb": 1.5},
+    "Utilities": {"pe": 16.0, "pb": 2.0, "roe": 0.11, "de": 1.5, "rev_growth": 0.06, "avg_pe": 16.0, "avg_pb": 2.0},
     "Healthcare": {"pe": 25.0, "pb": 3.5, "roe": 0.15, "de": 0.4, "rev_growth": 0.20, "avg_pe": 25.0, "avg_pb": 3.5},
     "Telecommunications": {"pe": 18.0, "pb": 2.5, "roe": 0.13, "de": 0.6, "rev_growth": 0.08, "avg_pe": 18.0, "avg_pb": 2.5},
+    "Mining": {"pe": 10.0, "pb": 1.8, "roe": 0.14, "de": 0.9, "rev_growth": 0.08, "avg_pe": 10.0, "avg_pb": 1.8},
 }
 
 DEFAULT_PROFILE = {"pe": 15.0, "pb": 2.5, "roe": 0.12, "de": 0.8, "rev_growth": 0.10, "avg_pe": 15.0, "avg_pb": 2.5}
+
+
+def sanitize_value(val, low, high, default):
+    if val is None:
+        return default
+    return max(low, min(high, val))
 
 
 def main():
@@ -44,9 +55,16 @@ def main():
         print(f"Training dataset not found: {INPUT_CSV}")
         sys.exit(1)
 
+    if not FUNDAMENTALS_JSON.exists():
+        print(f"Real fundamentals not found: {FUNDAMENTALS_JSON}")
+        sys.exit(1)
+
+    with open(FUNDAMENTALS_JSON) as f:
+        real_fundamentals = json.load(f)
+    print(f"Loaded real fundamentals for {len(real_fundamentals)} tickers")
+
     db = SessionLocal()
 
-    # Clear old data (order matters for FK constraints)
     print("Clearing old data...")
     db.query(AnalysisCandidate).delete()
     db.query(AnalysisResult).delete()
@@ -59,29 +77,20 @@ def main():
     db.commit()
     print("  Cleared all tables.")
 
-    # Read real data
     with open(INPUT_CSV, "r") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
     print(f"\nSeeding {len(rows)} real IPO candidates...")
 
-    import numpy as np
-    np.random.seed(42)
-
     for row in rows:
         ticker = row["ticker"]
         sector = row["sector"]
         profile = SECTOR_PROFILES.get(sector, DEFAULT_PROFILE)
         offer_price = int(row["offer_price_idr"])
-        first_day_return = float(row["first_day_return"])
-        outcome_signal = 1 if first_day_return > 0 else -1
 
-        # Determine status
         listing_date = datetime.strptime(row["listing_date"], "%Y-%m-%d").date()
         status = CandidateStatus.LISTED
-
-        # Determine underwriter tier
         tier = int(row["underwriter_tier"])
 
         candidate = IpoCandidate(
@@ -98,13 +107,25 @@ def main():
         db.add(candidate)
         db.flush()
 
-        # Generate realistic fundamentals based on sector and outcome
-        noise = np.random.uniform(0.75, 1.25)
-        pe = profile["pe"] * noise * (1 + outcome_signal * 0.1)
-        pb = profile["pb"] * noise * (1 + outcome_signal * 0.1)
-        roe = profile["roe"] * (1 + outcome_signal * 0.3 * np.random.uniform(0, 1))
-        de = profile["de"] * noise
-        rev_growth = profile["rev_growth"] * (1 + outcome_signal * 0.4 * np.random.uniform(0, 1))
+        fin = real_fundamentals.get(ticker, {})
+
+        pe_raw = fin.get("pe_ratio")
+        if pe_raw is not None and pe_raw < 0:
+            pe = 200.0
+        else:
+            pe = sanitize_value(pe_raw, 0.1, 500.0, profile["pe"])
+
+        pb = sanitize_value(fin.get("pb_ratio"), 0.01, 100.0, profile["pb"])
+        if fin.get("pb_ratio") is not None and fin["pb_ratio"] < 0:
+            pb = 0.01
+
+        roe = sanitize_value(fin.get("roe"), -2.0, 1.0, 0.0)
+        de = sanitize_value(fin.get("debt_to_equity"), 0.0, 10.0, profile["de"])
+        rev_growth = sanitize_value(fin.get("revenue_growth_yoy"), -1.0, 5.0, 0.0)
+
+        total_assets = fin.get("total_assets")
+        if total_assets is None:
+            total_assets = fin.get("market_cap")
 
         fundamental = Fundamental(
             id=str(uuid.uuid4()),
@@ -116,15 +137,18 @@ def main():
             revenue_growth_yoy=round(rev_growth, 4),
             sector_avg_pe=profile["avg_pe"],
             sector_avg_pb=profile["avg_pb"],
-            total_assets_idr=int(np.random.uniform(500e9, 50000e9)),
+            total_assets_idr=int(total_assets) if total_assets else None,
         )
         db.add(fundamental)
+
+        print(f"  {ticker}: PE={round(pe, 1)}, PB={round(pb, 2)}, ROE={round(roe, 3)}, "
+              f"D/E={round(de, 2)}, RevG={round(rev_growth, 3)}")
 
     db.commit()
     db.close()
 
-    print(f"Done! {len(rows)} real candidates seeded with fundamentals.")
-    print("\nSample tickers in DB: GOTO, BUKA, BRIS, AMMN, BREN, NCKL, MBMA...")
+    print(f"\nDone! {len(rows)} real candidates seeded with real fundamentals.")
+    print("Scores will now be deterministic (same fundamentals every run).")
 
 
 if __name__ == "__main__":

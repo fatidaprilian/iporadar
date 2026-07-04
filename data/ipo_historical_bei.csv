@@ -1,82 +1,39 @@
 ticker,company_name,sector,listing_date,offer_price_idr,underwriter,underwriter_tier
-BUKA,PT Bukalapak.com Tbk,Technology,2021-08-06,850,Mandiri Sekuritas,1
+BUKA,PT Bukalapak.com Tbk,Consumer Cyclical,2021-08-06,850,Mandiri Sekuritas,1
 GOTO,PT GoTo Gojek Tokopedia Tbk,Technology,2022-04-11,338,BCA Sekuritas,1
-BRIS,PT Bank Syariah Indonesia Tbk,Banking,2021-02-01,1480,Mandiri Sekuritas,1
-ARTO,PT Bank Jago Tbk,Banking,2016-01-13,100,Ciptadana Sekuritas,2
-AMMN,PT Amman Mineral Internasional Tbk,Mining,2023-07-07,1695,UBS Securities Indonesia,1
-BREN,PT Barito Renewables Energy Tbk,Energy,2023-10-09,780,BCA Sekuritas,1
-CUAN,PT Petrindo Jaya Kreasi Tbk,Energy,2023-01-09,220,Sinarmas Sekuritas,2
-NCKL,PT Trimegah Bangun Persada Tbk,Mining,2023-04-12,1250,Mandiri Sekuritas,1
-MBMA,PT Merdeka Battery Materials Tbk,Mining,2023-04-12,795,BCA Sekuritas,1
-ADRO,PT Alamtri Resources Indonesia Tbk,Mining,2023-11-20,100,Indo Premier Sekuritas,1
-PTRO,PT Petrosea Tbk,Mining,2019-05-22,1150,BCA Sekuritas,1
-MSTI,PT Mastersystem Infotama Tbk,Technology,2023-12-20,1355,BCA Sekuritas,1
-HILL,PT Hillcon Tbk,Mining,2023-03-17,1250,Mandiri Sekuritas,1
-WINE,PT HATTEN BALI Tbk,Consumer Goods,2023-11-22,129,Sinarmas Sekuritas,2
-CHIP,PT Pelita Teknologi Global Tbk,Technology,2023-01-17,160,Indo Premier Sekuritas,1
-RELF,PT Graha Mitra Asia Tbk,Infrastructure,2023-06-14,105,RHB Sekuritas Indonesia,2
-AWAN,PT Era Digital Media Tbk,Technology,2023-03-10,100,RHB Sekuritas Indonesia,2
-BDKR,PT Berdikari Pondasi Perkasa Tbk,Property,2023-02-08,100,RHB Sekuritas Indonesia,2
-NSSS,PT Nusantara Sawit Sejahtera Tbk,Consumer Goods,2023-04-12,130,NH Korindo Sekuritas,3
-DCII,PT DCI Indonesia Tbk,Technology,2021-01-06,5250,BCA Sekuritas,1
-BBYB,PT Bank Neo Commerce Tbk,Banking,2020-01-14,1250,Mirae Asset Sekuritas,2
-BANK,PT Bank Aladin Syariah Tbk,Banking,2020-01-15,138,MNC Sekuritas,2
-ACES,PT Aspirasi Hidup Indonesia Tbk,Consumer Goods,2019-11-06,1500,BCA Sekuritas,1
-BHAT,PT Bhakti Multi Artha Tbk,Banking,2023-06-28,262,Mandiri Sekuritas,1
-COAL,PT Black Diamond Resources Tbk,Mining,2023-04-26,188,RHB Sekuritas Indonesia,2
-GTRA,PT Grahaprima Suksesmandiri Tbk,Property,2023-03-24,100,RHB Sekuritas Indonesia,2
-KPAS,PT Cottonindo Ariesta Tbk,Consumer Goods,2023-11-15,2090,Indo Premier Sekuritas,1
-HAJJ,PT Arsy Buana Travelindo Tbk,Consumer Goods,2023-07-05,144,RHB Sekuritas Indonesia,2
-DNET,PT Indoritel Makmur Internasional Tbk,Technology,2019-10-17,490,Indo Premier Sekuritas,1
-MCOL,PT Prima Andalan Mandiri Tbk,Mining,2023-03-30,250,Mandiri Sekuritas,1
-PGEO,PT Pertamina Geothermal Energy Tbk,Energy,2023-02-23,875,BCA Sekuritas,1
-KRYA,PT Bangun Karya Perkasa Jaya Tbk,Infrastructure,2023-01-25,235,NH Korindo Sekuritas,3
-CMNT,PT Cemindo Gemilang Tbk,Consumer Goods,2023-01-11,250,Mandiri Sekuritas,1
-TOBA,PT TBS Energi Utama Tbk,Energy,2021-11-10,2100,BCA Sekuritas,1
-BOLA,PT Bali Bintang Sejahtera Tbk,Consumer Goods,2019-03-06,550,BCA Sekuritas,1
+ARTO,PT Bank Jago Tbk,Financial Services,2016-01-12,132,Erdikha Elit Sekuritas,3
+AMMN,PT Amman Mineral Internasional Tbk,Basic Materials,2023-07-07,1695,UBS Securities Indonesia,1
+BREN,PT Barito Renewables Energy Tbk,Utilities,2023-10-09,780,BCA Sekuritas,1
+CUAN,PT Petrindo Jaya Kreasi Tbk,Energy,2023-03-08,220,Sinarmas Sekuritas,2
+NCKL,PT Trimegah Bangun Persada Tbk,Basic Materials,2023-04-12,1250,Mandiri Sekuritas,1
+MBMA,PT Merdeka Battery Materials Tbk,Basic Materials,2023-04-18,795,BCA Sekuritas,1
+MSTI,Mastersystem Infotama Tbk,Technology,2023-11-08,1355,BCA Sekuritas,1
+HILL,PT Hillcon Tbk,Basic Materials,2023-03-01,1250,Mandiri Sekuritas,1
+WINE,PT HATTEN BALI Tbk,Consumer Staples,2023-01-10,129,Sinarmas Sekuritas,2
+CHIP,PT Pelita Teknologi Global Tbk,Telecommunications,2023-02-08,160,Indo Premier Sekuritas,1
+RELF,PT Graha Mitra Asia Tbk,Property,2023-06-22,105,RHB Sekuritas Indonesia,2
+AWAN,PT Era Digital Media Tbk,Telecommunications,2023-04-18,100,PT Samuel Sekuritas Indonesia,2
+BDKR,PT Berdikari Pondasi Perkasa Tbk,Industrials,2023-03-03,200,RHB Sekuritas Indonesia,2
+NSSS,PT Nusantara Sawit Sejahtera Tbk,Consumer Staples,2023-03-10,127,NH Korindo Sekuritas,3
+DCII,PT DCI Indonesia Tbk,Property,2021-01-06,5250,BCA Sekuritas,1
+COAL,PT Black Diamond Resources Tbk,Energy,2022-09-07,188,RHB Sekuritas Indonesia,2
+GTRA,PT Grahaprima Suksesmandiri Tbk,Industrials,2023-03-30,150,RHB Sekuritas Indonesia,2
+HAJJ,PT Arsy Buana Travelindo Tbk,Consumer Cyclical,2023-04-05,140,RHB Sekuritas Indonesia,2
+PGEO,PT Pertamina Geothermal Energy Tbk,Utilities,2023-02-24,875,BCA Sekuritas,1
+KRYA,PT Bangun Karya Perkasa Jaya Tbk,Industrials,2022-07-26,235,NH Korindo Sekuritas,3
+BOLA,PT Bali Bintang Sejahtera Tbk,Telecommunications,2019-06-17,550,BCA Sekuritas,1
 MTEL,PT Dayamitra Telekomunikasi Tbk,Telecommunications,2021-11-22,800,Mandiri Sekuritas,1
-SMKL,PT Satyamitra Kemas Lestari Tbk,Consumer Goods,2021-07-08,125,Indo Premier Sekuritas,1
-PPGL,PT Prima Globalindo Logistik Tbk,Infrastructure,2024-01-04,100,Sinarmas Sekuritas,2
-CBPE,PT Citra Buana Prasida Tbk,Property,2024-01-10,100,Henan Putihrai Sekuritas,3
-RAAM,PT Tripar Multivision Plus Tbk,Mining,2024-02-07,110,RHB Sekuritas Indonesia,2
-IOTF,PT Sumber Sinergi Makmur Tbk,Property,2024-02-19,100,RHB Sekuritas Indonesia,2
-EAST,PT Eastparc Hotel Tbk,Banking,2024-03-06,100,Mandiri Sekuritas,1
-GULA,PT Aman Agrindo Tbk,Consumer Goods,2024-03-20,850,Indo Premier Sekuritas,1
-TOOL,PT Rohartindo Nusantara Luas Tbk,Infrastructure,2024-04-10,100,MNC Sekuritas,2
-SLIS,PT Gaya Abadi Sempurna Tbk,Infrastructure,2024-04-17,100,NH Korindo Sekuritas,3
-TGRA,PT. Terregra Asia Energy Tbk,Energy,2024-05-08,100,Indo Premier Sekuritas,1
-GOLD,PT Merdeka Gold Resources Tbk,Mining,2024-05-13,1025,Mandiri Sekuritas,1
-HELI,PT Jaya Trishindo Tbk,Technology,2024-06-10,720,BCA Sekuritas,1
-JARR,PT Jhonlin Agro Raya Tbk,Infrastructure,2019-12-17,360,Mandiri Sekuritas,1
-NASI,PT Wahana Inti Makmur Tbk,Consumer Goods,2019-04-24,100,RHB Sekuritas Indonesia,2
-IPCM,PT Jasa Armada Indonesia Tbk,Infrastructure,2019-11-20,378,Mandiri Sekuritas,1
-PURE,PT Trinitan Metals and Minerals Tbk,Mining,2019-06-11,100,Mandiri Sekuritas,1
-EDGE,PT Indointernet Tbk,Technology,2023-07-10,1510,BCA Sekuritas,1
-SWID,PT Saraswanti Indoland Development Tbk,Consumer Goods,2019-12-11,100,RHB Sekuritas Indonesia,2
-PNGO,PT PINAGO UTAMA Tbk,Consumer Goods,2023-09-12,268,Indo Premier Sekuritas,1
-RUNS,PT Global Sukses Solusi Tbk,Infrastructure,2024-07-24,100,RHB Sekuritas Indonesia,2
-GHON,PT Gihon Telekomunikasi Indonesia Tbk,Telecommunications,2019-04-22,350,MNC Sekuritas,2
-SBMA,PT Surya Biru Murni Acetylene Tbk,Mining,2024-06-05,100,Indo Premier Sekuritas,1
-INET,PT Sinergi Inti Andalan Prima Tbk,Technology,2019-10-09,100,BCA Sekuritas,1
-NFCX,PT NFC Indonesia Tbk,Technology,2019-07-12,120,NH Korindo Sekuritas,3
-WMPP,PT Widodo Makmur Perkasa Tbk,Consumer Goods,2021-12-23,250,Mandiri Sekuritas,1
-URBN,PT Urban Jakarta Propertindo Tbk,Property,2019-12-10,284,BCA Sekuritas,1
-ITIC,PT Indonesian Tobacco Tbk,Consumer Goods,2019-03-20,430,Indo Premier Sekuritas,1
-NETV,PT MDTV Media Technologies Tbk,Technology,2024-07-10,100,MNC Sekuritas,2
-FWCT,PT Wijaya Cahaya Timber Tbk,Mining,2024-08-05,100,Sinarmas Sekuritas,2
-PTPS,PT Pulau Subur Tbk,Banking,2024-09-03,100,Indo Premier Sekuritas,1
-SMLE,PT Sinergi Multi Lestarindo Tbk,Technology,2024-08-14,100,RHB Sekuritas Indonesia,2
-OLIV,PT Oscar Mitra Sukses Sejahtera Tbk,Consumer Goods,2024-09-11,100,NH Korindo Sekuritas,3
-TECH,PT Indosterling Technomedia TBK,Technology,2024-10-15,100,MNC Sekuritas,2
-NICE,PT Adhi Kartiko Pratama Tbk,Infrastructure,2019-03-13,1010,BCA Sekuritas,1
-MPXL,PT MPX Logistics International Tbk,Infrastructure,2024-10-28,100,Indo Premier Sekuritas,1
-TAYS,PT Jaya Swarasa Agung Tbk,Consumer Goods,2024-11-06,100,RHB Sekuritas Indonesia,2
-DRMA,PT Dharma Polimetal Tbk,Consumer Goods,2021-12-22,400,BCA Sekuritas,1
-BSML,PT Bintang Samudera Mandiri Lines Tbk,Technology,2024-12-04,100,Sinarmas Sekuritas,2
-MAPA,PT Map Aktif Adiperkasa Tbk,Consumer Goods,2019-07-05,850,BCA Sekuritas,1
-INPS,PT Indah Prakasa Sentosa Tbk,Infrastructure,2024-06-26,100,RHB Sekuritas Indonesia,2
-GJTL,PT. Gajah Tunggal Tbk,Consumer Goods,2019-01-14,1500,Mandiri Sekuritas,1
-BELI,PT Global Digital Niaga Tbk,Technology,2022-11-07,450,BCA Sekuritas,1
-STRK,PT Lovina Beach Brewery Tbk,Mining,2024-07-17,100,NH Korindo Sekuritas,3
-HRUM,PT Harum Energy Tbk,Mining,2023-10-04,2050,BCA Sekuritas,1
-TOSK,PT Topindo Solusi Komunika Tbk,Technology,2024-11-20,100,MNC Sekuritas,2
+RAAM,PT Tripar Multivision Plus Tbk,Telecommunications,2023-05-08,234,PT Sucor Sekuritas,2
+IOTF,PT Sumber Sinergi Makmur Tbk,Technology,2023-10-06,100,RHB Sekuritas Indonesia,2
+PURE,PT Trinitan Metals and Minerals Tbk,Mining,2019-10-09,300,Mandiri Sekuritas,1
+NFCX,PT NFC Indonesia Tbk,Telecommunications,2018-07-12,1850,NH Korindo Sekuritas,3
+WMPP,PT Widodo Makmur Perkasa Tbk,Industrials,2021-12-06,250,Mandiri Sekuritas,1
+URBN,PT Urban Jakarta Propertindo Tbk,Property,2018-12-10,284,BCA Sekuritas,1
+ITIC,PT Indonesian Tobacco Tbk,Consumer Staples,2019-07-04,430,Indo Premier Sekuritas,1
+PTPS,PT Pulau Subur Tbk,Consumer Staples,2023-10-09,198,Indo Premier Sekuritas,1
+SMLE,Sinergi Multi Lestarindo Tbk,Basic Materials,2024-01-10,175,RHB Sekuritas Indonesia,2
+DRMA,PT Dharma Polimetal Tbk,Consumer Cyclical,2021-12-20,500,BCA Sekuritas,1
+MAPA,PT Map Aktif Adiperkasa Tbk,Consumer Cyclical,2018-07-05,850,BCA Sekuritas,1
+BELI,PT Global Digital Niaga Tbk,Consumer Cyclical,2022-11-08,450,BCA Sekuritas,1
+STRK,PT Lovina Beach Brewery Tbk,Consumer Staples,2023-10-10,100,PT Artha Sekuritas Indonesia,3
+TOSK,Topindo Solusi Komunika Tbk,Technology,2024-02-07,125,MNC Sekuritas,2

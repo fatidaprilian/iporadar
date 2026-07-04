@@ -1,7 +1,7 @@
 """Train XGBoost models on real IPO historical data.
 
 Reads data/ipo_training_dataset.csv (real IPOs with yfinance-validated returns).
-Uses sector profiles for fundamental estimates where actual data unavailable.
+Uses real fundamentals from data/real_fundamentals.json.
 Outputs: apps/api/models/layer1_xgb.pkl, layer2_xgb.pkl, sector_encoder.pkl
 
 Usage:
@@ -9,6 +9,7 @@ Usage:
 """
 
 import csv
+import json
 import math
 import os
 import pickle
@@ -25,45 +26,60 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 INPUT_CSV = ROOT / "data" / "ipo_training_dataset.csv"
+FUNDAMENTALS_JSON = ROOT / "data" / "real_fundamentals.json"
 MODEL_DIR = ROOT / "apps" / "api" / "models"
 
 SECTOR_PROFILES = {
-    "Mining": {"pe": 12.0, "pb": 2.0, "roe": 0.15, "de": 0.8, "rev_growth": 0.10},
+    "Basic Materials": {"pe": 12.0, "pb": 2.0, "roe": 0.15, "de": 0.8, "rev_growth": 0.10},
     "Technology": {"pe": 28.0, "pb": 4.5, "roe": 0.12, "de": 0.3, "rev_growth": 0.30},
-    "Banking": {"pe": 10.0, "pb": 1.5, "roe": 0.14, "de": 5.0, "rev_growth": 0.12},
-    "Consumer Goods": {"pe": 20.0, "pb": 3.0, "roe": 0.18, "de": 0.5, "rev_growth": 0.15},
+    "Financial Services": {"pe": 10.0, "pb": 1.5, "roe": 0.14, "de": 5.0, "rev_growth": 0.12},
+    "Consumer Cyclical": {"pe": 22.0, "pb": 3.2, "roe": 0.16, "de": 0.5, "rev_growth": 0.18},
+    "Consumer Staples": {"pe": 18.0, "pb": 2.8, "roe": 0.18, "de": 0.4, "rev_growth": 0.12},
     "Property": {"pe": 15.0, "pb": 1.8, "roe": 0.10, "de": 1.2, "rev_growth": 0.08},
-    "Infrastructure": {"pe": 14.0, "pb": 2.2, "roe": 0.12, "de": 1.0, "rev_growth": 0.10},
+    "Industrials": {"pe": 14.0, "pb": 2.2, "roe": 0.12, "de": 1.0, "rev_growth": 0.10},
     "Energy": {"pe": 10.0, "pb": 1.5, "roe": 0.16, "de": 0.7, "rev_growth": 0.12},
+    "Utilities": {"pe": 16.0, "pb": 2.0, "roe": 0.11, "de": 1.5, "rev_growth": 0.06},
     "Healthcare": {"pe": 25.0, "pb": 3.5, "roe": 0.15, "de": 0.4, "rev_growth": 0.20},
     "Telecommunications": {"pe": 18.0, "pb": 2.5, "roe": 0.13, "de": 0.6, "rev_growth": 0.08},
+    "Mining": {"pe": 10.0, "pb": 1.8, "roe": 0.14, "de": 0.9, "rev_growth": 0.08},
 }
 
 DEFAULT_PROFILE = {"pe": 15.0, "pb": 2.5, "roe": 0.12, "de": 0.8, "rev_growth": 0.10}
 
 
-def build_features(row: dict, sector_encoder: LabelEncoder) -> dict:
-    """Build 10-feature vector from a real IPO row."""
+def sanitize_value(val, low, high, default):
+    """Clamp a value to [low, high], returning default if None."""
+    if val is None:
+        return default
+    return max(low, min(high, val))
+
+
+def build_features(row: dict, sector_encoder: LabelEncoder, real_fundamentals: dict) -> dict:
+    """Build 10-feature vector from a real IPO row using real fundamentals."""
+    ticker = row["ticker"]
     sector = row["sector"]
     profile = SECTOR_PROFILES.get(sector, DEFAULT_PROFILE)
-
     offer_price = int(row["offer_price_idr"])
     tier = int(row["underwriter_tier"])
-    first_day_return = float(row["first_day_return"])
 
-    # Use sector profile as base fundamental, add variance based on actual outcome
-    # Better-performing IPOs tend to have better fundamentals
-    outcome_signal = 1 if first_day_return > 0 else -1
-    noise = np.random.uniform(0.7, 1.3)
+    fin = real_fundamentals.get(ticker, {})
 
-    pe = profile["pe"] * noise
-    pb = profile["pb"] * noise
-    roe = profile["roe"] * (1 + outcome_signal * 0.3 * np.random.uniform(0, 1))
-    de = profile["de"] * noise
-    rev_growth = profile["rev_growth"] * (1 + outcome_signal * 0.4 * np.random.uniform(0, 1))
+    pe_raw = fin.get("pe_ratio")
+    if pe_raw is not None and pe_raw < 0:
+        pe = 200.0
+    else:
+        pe = sanitize_value(pe_raw, 0.1, 500.0, profile["pe"])
 
-    pe_vs_sector = (pe - profile["pe"]) / profile["pe"]
-    pb_vs_sector = (pb - profile["pb"]) / profile["pb"]
+    pb = sanitize_value(fin.get("pb_ratio"), 0.01, 100.0, profile["pb"])
+    if fin.get("pb_ratio") is not None and fin["pb_ratio"] < 0:
+        pb = 0.01
+
+    roe = sanitize_value(fin.get("roe"), -2.0, 1.0, 0.0)
+    de = sanitize_value(fin.get("debt_to_equity"), 0.0, 10.0, profile["de"])
+    rev_growth = sanitize_value(fin.get("revenue_growth_yoy"), -1.0, 5.0, 0.0)
+
+    pe_vs_sector = pe / profile["pe"] if profile["pe"] else 1.0
+    pb_vs_sector = pb / profile["pb"] if profile["pb"] else 1.0
 
     try:
         sector_enc = sector_encoder.transform([sector])[0]
@@ -92,25 +108,30 @@ def main():
         print("Run scripts/build_real_dataset.py first.")
         sys.exit(1)
 
+    if not FUNDAMENTALS_JSON.exists():
+        print(f"Real fundamentals not found: {FUNDAMENTALS_JSON}")
+        print("Run the yfinance fundamentals fetch script first.")
+        sys.exit(1)
+
+    with open(FUNDAMENTALS_JSON) as f:
+        real_fundamentals = json.load(f)
+    print(f"Loaded real fundamentals for {len(real_fundamentals)} tickers")
+
     df = pd.read_csv(INPUT_CSV)
     print(f"Loaded {len(df)} real IPO records")
 
-    # Filter out extreme outliers (likely bad data - wrong listing dates)
-    # Keep returns within -95% to +1000% for training stability
     df = df[df["first_day_return"].abs() < 10.0].copy()
     if "day30_return" in df.columns:
         df = df[df["day30_return"].abs() < 10.0].copy()
     print(f"After filtering outliers: {len(df)} records")
 
-    # Prepare sector encoder
     all_sectors = list(SECTOR_PROFILES.keys())
     sector_encoder = LabelEncoder()
     sector_encoder.fit(all_sectors)
 
-    # Build feature matrix
     features_list = []
     for _, row in df.iterrows():
-        features_list.append(build_features(row.to_dict(), sector_encoder))
+        features_list.append(build_features(row.to_dict(), sector_encoder, real_fundamentals))
 
     X = pd.DataFrame(features_list)
     y_l1 = df["label_first_day"].values
@@ -121,14 +142,24 @@ def main():
     print(f"L1 label distribution: {sum(y_l1)}/{len(y_l1)} positive ({sum(y_l1)/len(y_l1)*100:.0f}%)")
     print(f"L2 label distribution: {sum(y_l2)}/{len(y_l2)} positive ({sum(y_l2)/len(y_l2)*100:.0f}%)")
 
-    # Train Layer 1 (first-day return)
+    print("\nSample features (first 5):")
+    for i, (_, row) in enumerate(df.head(5).iterrows()):
+        feat = features_list[i]
+        print(f"  {row['ticker']}: PE={feat['pe_ratio']}, PB={feat['pb_ratio']}, "
+              f"ROE={feat['roe']}, D/E={feat['debt_to_equity']}, "
+              f"RevG={feat['revenue_growth_yoy']}")
+
     print("\n--- Training Layer 1 (First-Day Return) ---")
     l1_model = XGBClassifier(
-        n_estimators=100,
-        max_depth=4,
-        learning_rate=0.1,
+        n_estimators=50,
+        max_depth=3,
+        learning_rate=0.08,
         subsample=0.8,
-        colsample_bytree=0.8,
+        colsample_bytree=0.7,
+        min_child_weight=2,
+        reg_alpha=0.5,
+        reg_lambda=3.0,
+        gamma=0.5,
         eval_metric="logloss",
         random_state=42,
     )
@@ -139,14 +170,17 @@ def main():
 
     l1_model.fit(X, y_l1)
 
-    # Train Layer 2 (30-day return)
     print("\n--- Training Layer 2 (30-Day Return) ---")
     l2_model = XGBClassifier(
-        n_estimators=100,
-        max_depth=4,
-        learning_rate=0.1,
+        n_estimators=50,
+        max_depth=3,
+        learning_rate=0.08,
         subsample=0.8,
-        colsample_bytree=0.8,
+        colsample_bytree=0.7,
+        min_child_weight=2,
+        reg_alpha=0.5,
+        reg_lambda=3.0,
+        gamma=0.5,
         eval_metric="logloss",
         random_state=42,
     )
@@ -156,14 +190,12 @@ def main():
 
     l2_model.fit(X, y_l2)
 
-    # Feature importance
     print("\n--- Feature Importance (L1) ---")
     importances = l1_model.feature_importances_
     sorted_idx = np.argsort(importances)[::-1]
     for i in sorted_idx[:5]:
         print(f"  {feature_names[i]}: {importances[i]:.3f}")
 
-    # Save models in the format expected by XGBoostModelWrapper
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
     with open(MODEL_DIR / "layer1_xgb.pkl", "wb") as f:

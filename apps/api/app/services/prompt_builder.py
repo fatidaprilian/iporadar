@@ -104,16 +104,14 @@ def build_prompt(ranked_candidates: list[dict], analysis_date: datetime) -> str:
     )
 
     if all_listed:
-        preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
+        preamble = f"""Kamu adalah validator model ML untuk IPO screening.
 
-KONTEKS: Data berikut adalah IPO yang SUDAH LISTING di BEI.
-Sistem ML kami menggunakan data historis ini untuk validasi model.
-Tugasmu adalah menganalisa kandidat-kandidat ini SEOLAH-OLAH mereka
-belum listing (analisa prospektif), lalu bandingkan prediksi ML
-dengan performa aktual yang bisa kamu verifikasi via web search.
+KONTEKS: Kandidat di bawah adalah IPO BEI yang SUDAH LISTING.
+Tugasmu: verifikasi apakah prediksi ML (Layer 1 & Layer 2 score)
+sesuai dengan performa aktual saham setelah listing.
 
 Tanggal analisa: {date_str}
-Mode: BACKTEST (validasi model ML)"""
+Mode: BACKTEST (validasi akurasi ML)"""
     elif has_upcoming:
         preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
 Tugasmu adalah membandingkan kandidat IPO berikut dan memilih SATU
@@ -129,59 +127,39 @@ yang paling layak dibeli saat ini berdasarkan analisa menyeluruh.
 Tanggal analisa: {date_str}"""
 
     if all_listed:
-        instructions = """INSTRUKSI ANALISA (MODE BACKTEST):
+        instructions = """INSTRUKSI BACKTEST:
 
-Langkah 1 -- Web Search (WAJIB)
-Untuk setiap kandidat, cari:
-  - Performa saham sejak listing (harga saat ini vs harga penawaran)
-  - Berita material tentang perusahaan pasca-listing
-  - Kondisi sektor saat kandidat listing vs sekarang
+Untuk setiap kandidat:
+1. Cari harga saham saat ini dan bandingkan dengan harga penawaran IPO
+2. Tentukan apakah saham outperform (naik) atau underperform (turun)
+   - Hari pertama: harga close hari pertama vs harga penawaran
+   - 30 hari: harga di ~30 hari setelah listing vs harga penawaran
 
-Langkah 2 -- Evaluasi Prospektif (Seolah Belum Listing)
-Berdasarkan data fundamental di bawah, evaluasi seolah-olah IPO belum terjadi:
-  - Valuasi relatif: bandingkan P/E dan P/B terhadap rata-rata sektor
-  - Kualitas bisnis: ROE, revenue growth, debt-to-equity
-  - Kualitas IPO: reputasi underwriter, besaran offer
-  - Red flags:
-      * P/E lebih dari 2x rata-rata sektor tanpa justifikasi growth
-      * ROE negatif
-      * Underwriter Tier-3 dengan track record buruk
-      * Debt-to-equity di atas 2.0 untuk sektor non-finansial
+3. Bandingkan dengan prediksi ML:
+   - Layer 1 score > 50% = ML prediksi outperform hari pertama
+   - Layer 2 score > 50% = ML prediksi outperform 30 hari
+   - Cek apakah prediksi ML BENAR atau SALAH
 
-Langkah 3 -- Bandingkan Prediksi ML vs Realita
-  - ML score tinggi → apakah saham benar outperform setelah listing?
-  - ML score rendah → apakah saham benar underperform?
-  - Identifikasi di mana model ML benar dan di mana salah
-
-Langkah 4 -- Perbandingan Antar Kandidat
-Buat tabel: ticker, ML score, prediksi (beli/tidak), realita (naik/turun),
-akurasi prediksi.
-
-Langkah 5 -- Kesimpulan Backtest
-  - Seberapa akurat model ML berdasarkan sampel ini?
-  - Kandidat mana yang seharusnya dibeli (berdasarkan data aktual)?
-  - Rekomendasi perbaikan model jika ada pola kesalahan"""
+4. Hitung akurasi total model ML dari sampel ini"""
 
         output_format = """OUTPUT FORMAT:
 
-RINGKASAN BACKTEST:
-[Tabel perbandingan prediksi ML vs performa aktual per kandidat]
+TABEL VALIDASI:
+| Ticker | L1 Score | Prediksi L1 | Aktual Hari-1 | L1 Benar? | L2 Score | Prediksi L2 | Aktual 30d | L2 Benar? |
+(isi per kandidat)
 
 AKURASI MODEL:
-[Berapa persen prediksi ML yang benar untuk sampel ini]
+- Layer 1 (first-day): X dari Y benar (Z%)
+- Layer 2 (30-day): X dari Y benar (Z%)
 
-KANDIDAT TERBAIK (RETROSPEKTIF):
-[Kandidat mana yang faktanya paling menguntungkan, dengan data aktual]
+POLA KESALAHAN (jika ada):
+[Sebutkan pola: misal "ML terlalu optimis untuk sektor X" atau "ML salah di saham small-cap"]
 
-ANALISA KESALAHAN MODEL:
-[Di mana ML salah prediksi dan kemungkinan penyebabnya]
-
-SUMBER DATA:
-[URL atau judul berita/data yang digunakan]
+KESIMPULAN:
+[1-2 kalimat: apakah model ML cukup akurat untuk digunakan?]
 
 DISCLAIMER:
-Output ini adalah hasil backtest untuk validasi model ML, bukan
-saran investasi. Data yang dianalisa adalah IPO yang sudah listing."""
+Ini adalah backtest validasi model ML, bukan saran investasi."""
     else:
         instructions = """INSTRUKSI ANALISA:
 

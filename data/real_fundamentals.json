@@ -1,0 +1,382 @@
+{
+  "BUKA": {
+    "pe_ratio": 3.86,
+    "pb_ratio": 0.37,
+    "roe": 0.1081,
+    "debt_to_equity": 0.0046,
+    "revenue_growth_yoy": 0.627,
+    "total_assets": 26030762801000,
+    "total_revenue": 7423351848960,
+    "market_cap": 9216030932992
+  },
+  "GOTO": {
+    "pe_ratio": -9.4,
+    "pb_ratio": 1.66,
+    "roe": -0.0329,
+    "debt_to_equity": 0.2775,
+    "revenue_growth_yoy": 0.263,
+    "total_assets": 45757642000000,
+    "total_revenue": 19432797634560,
+    "market_cap": 53100509396992
+  },
+  "ARTO": {
+    "pe_ratio": 43.29,
+    "pb_ratio": 1.43,
+    "roe": 0.0345,
+    "debt_to_equity": null,
+    "revenue_growth_yoy": 0.266,
+    "total_assets": 36507347000000,
+    "total_revenue": 2175290966016,
+    "market_cap": 12752424796160
+  },
+  "AMMN": {
+    "pe_ratio": 23.98,
+    "pb_ratio": 46052.63,
+    "roe": 0.1048,
+    "debt_to_equity": 1.1655,
+    "revenue_growth_yoy": 379.373,
+    "total_assets": 13870648000,
+    "total_revenue": 2652308992,
+    "market_cap": 253443453222912
+  },
+  "BREN": {
+    "pe_ratio": 178.57,
+    "pb_ratio": 680000.0,
+    "roe": 0.2044,
+    "debt_to_equity": 2.2104,
+    "revenue_growth_yoy": 0.098,
+    "total_assets": 3867410000,
+    "total_revenue": 619875968,
+    "market_cap": 454850357755904
+  },
+  "CUAN": {
+    "pe_ratio": 28.25,
+    "pb_ratio": 203333.33,
+    "roe": 0.2599,
+    "debt_to_equity": 2.4095,
+    "revenue_growth_yoy": 0.736,
+    "total_assets": 2691110000,
+    "total_revenue": 1373014016,
+    "market_cap": 68563511541760
+  },
+  "NCKL": {
+    "pe_ratio": 5.41,
+    "pb_ratio": 1.3,
+    "roe": 0.2596,
+    "debt_to_equity": 0.1803,
+    "revenue_growth_yoy": -0.045,
+    "total_assets": 61770103000000,
+    "total_revenue": 29314871459840,
+    "market_cap": 54169566183424
+  },
+  "MBMA": {
+    "pe_ratio": 49.76,
+    "pb_ratio": 34666.67,
+    "roe": 0.0735,
+    "debt_to_equity": 0.4551,
+    "revenue_growth_yoy": 0.243,
+    "total_assets": 3735333962,
+    "total_revenue": 1523542528,
+    "market_cap": 56157620142080
+  },
+  "MSTI": {
+    "pe_ratio": 7.09,
+    "pb_ratio": 1.59,
+    "roe": 0.231,
+    "debt_to_equity": 0.0382,
+    "revenue_growth_yoy": -0.08,
+    "total_assets": 3461643402882,
+    "total_revenue": 5359002976256,
+    "market_cap": 3830087942144
+  },
+  "HILL": {
+    "pe_ratio": null,
+    "pb_ratio": 0.55,
+    "roe": -1.8753,
+    "debt_to_equity": 56.123,
+    "revenue_growth_yoy": -0.814,
+    "total_assets": 5302295000000,
+    "total_revenue": 2509836124160,
+    "market_cap": 235863998464
+  },
+  "WINE": {
+    "pe_ratio": 11.05,
+    "pb_ratio": 1.19,
+    "roe": 0.1118,
+    "debt_to_equity": 0.2373,
+    "revenue_growth_yoy": 0.01,
+    "total_assets": 452839418342,
+    "total_revenue": 286317182976,
+    "market_cap": 406500016128
+  },
+  "CHIP": {
+    "pe_ratio": 161.18,
+    "pb_ratio": 10.95,
+    "roe": 0.069,
+    "debt_to_equity": 0.5161,
+    "revenue_growth_yoy": 0.303,
+    "total_assets": 115410086322,
+    "total_revenue": 136849260544,
+    "market_cap": 749579993088
+  },
+  "RELF": {
+    "pe_ratio": null,
+    "pb_ratio": 0.8,
+    "roe": 0.0355,
+    "debt_to_equity": 0.1179,
+    "revenue_growth_yoy": -0.308,
+    "total_assets": null,
+    "total_revenue": 39557971968,
+    "market_cap": 194746286080
+  },
+  "AWAN": {
+    "pe_ratio": null,
+    "pb_ratio": 6.85,
+    "roe": -0.1052,
+    "debt_to_equity": 0.1251,
+    "revenue_growth_yoy": -0.087,
+    "total_assets": null,
+    "total_revenue": 61608431616,
+    "market_cap": 487769997312
+  },
+  "BDKR": {
+    "pe_ratio": 26.36,
+    "pb_ratio": 0.85,
+    "roe": 0.0327,
+    "debt_to_equity": 0.2295,
+    "revenue_growth_yoy": -0.094,
+    "total_assets": 1114955604661,
+    "total_revenue": 394456727552,
+    "market_cap": 653880590336
+  },
+  "NSSS": {
+    "pe_ratio": 23.53,
+    "pb_ratio": 7.09,
+    "roe": 0.3478,
+    "debt_to_equity": 0.8111,
+    "revenue_growth_yoy": 0.085,
+    "total_assets": 4202376000000,
+    "total_revenue": 2054515064832,
+    "market_cap": 14756972855296
+  },
+  "DCII": {
+    "pe_ratio": 476.19,
+    "pb_ratio": 105.83,
+    "roe": 0.2462,
+    "debt_to_equity": 0.4672,
+    "revenue_growth_yoy": 0.109,
+    "total_assets": 6648415000000,
+    "total_revenue": 2624577077248,
+    "market_cap": 452375349297152
+  },
+  "COAL": {
+    "pe_ratio": null,
+    "pb_ratio": 0.39,
+    "roe": -0.0258,
+    "debt_to_equity": 0.5449,
+    "revenue_growth_yoy": null,
+    "total_assets": null,
+    "total_revenue": 116418699264,
+    "market_cap": 137500000256
+  },
+  "GTRA": {
+    "pe_ratio": null,
+    "pb_ratio": 0.86,
+    "roe": 0.1921,
+    "debt_to_equity": 2.2047,
+    "revenue_growth_yoy": 0.453,
+    "total_assets": null,
+    "total_revenue": 718101086208,
+    "market_cap": 350459396096
+  },
+  "HAJJ": {
+    "pe_ratio": null,
+    "pb_ratio": 1.17,
+    "roe": 0.0065,
+    "debt_to_equity": 0.6003,
+    "revenue_growth_yoy": -0.115,
+    "total_assets": null,
+    "total_revenue": 907464736768,
+    "market_cap": 261660590080
+  },
+  "PGEO": {
+    "pe_ratio": 13.89,
+    "pb_ratio": 17500.0,
+    "roe": 0.0727,
+    "debt_to_equity": 0.3581,
+    "revenue_growth_yoy": 0.148,
+    "total_assets": 3034451000,
+    "total_revenue": 447774016,
+    "market_cap": 36662092496896
+  },
+  "KRYA": {
+    "pe_ratio": null,
+    "pb_ratio": 4.1,
+    "roe": -1.3577,
+    "debt_to_equity": 2.0877,
+    "revenue_growth_yoy": -0.854,
+    "total_assets": null,
+    "total_revenue": 90768891904,
+    "market_cap": 89852944384
+  },
+  "BOLA": {
+    "pe_ratio": 21.15,
+    "pb_ratio": 1.38,
+    "roe": 0.0632,
+    "debt_to_equity": 0.022,
+    "revenue_growth_yoy": 0.288,
+    "total_assets": 898570661030,
+    "total_revenue": 374248865792,
+    "market_cap": 882000003072
+  },
+  "MTEL": {
+    "pe_ratio": 18.15,
+    "pb_ratio": 1.18,
+    "roe": 0.0633,
+    "debt_to_equity": 0.626,
+    "revenue_growth_yoy": 0.014,
+    "total_assets": 58350129000000,
+    "total_revenue": 9565624074240,
+    "market_cap": 39700060438528
+  },
+  "RAAM": {
+    "pe_ratio": null,
+    "pb_ratio": 1.1,
+    "roe": -0.0533,
+    "debt_to_equity": 0.2734,
+    "revenue_growth_yoy": -0.031,
+    "total_assets": 1701143274114,
+    "total_revenue": 179404570624,
+    "market_cap": 1417233039360
+  },
+  "IOTF": {
+    "pe_ratio": null,
+    "pb_ratio": 1.72,
+    "roe": 0.0025,
+    "debt_to_equity": 0.1002,
+    "revenue_growth_yoy": -0.036,
+    "total_assets": null,
+    "total_revenue": 64999280640,
+    "market_cap": 269805191168
+  },
+  "PURE": {
+    "pe_ratio": null,
+    "pb_ratio": -0.52,
+    "roe": null,
+    "debt_to_equity": null,
+    "revenue_growth_yoy": null,
+    "total_assets": null,
+    "total_revenue": null,
+    "market_cap": 70134177792
+  },
+  "NFCX": {
+    "pe_ratio": null,
+    "pb_ratio": 3.86,
+    "roe": -0.0054,
+    "debt_to_equity": 0.4698,
+    "revenue_growth_yoy": -0.37,
+    "total_assets": 1376206862018,
+    "total_revenue": 3664950329344,
+    "market_cap": 1056547602432
+  },
+  "WMPP": {
+    "pe_ratio": null,
+    "pb_ratio": 2.08,
+    "roe": -0.0495,
+    "debt_to_equity": 2.7206,
+    "revenue_growth_yoy": 0.409,
+    "total_assets": 4540651979592,
+    "total_revenue": 1095472906240,
+    "market_cap": 529541988352
+  },
+  "URBN": {
+    "pe_ratio": null,
+    "pb_ratio": 0.61,
+    "roe": -0.0914,
+    "debt_to_equity": 0.4545,
+    "revenue_growth_yoy": -0.711,
+    "total_assets": 4159258762165,
+    "total_revenue": 5692057600,
+    "market_cap": 667593998336
+  },
+  "ITIC": {
+    "pe_ratio": 9.22,
+    "pb_ratio": 0.39,
+    "roe": 0.0446,
+    "debt_to_equity": 0.263,
+    "revenue_growth_yoy": -0.011,
+    "total_assets": null,
+    "total_revenue": 280914624512,
+    "market_cap": 186262552576
+  },
+  "PTPS": {
+    "pe_ratio": null,
+    "pb_ratio": 1.49,
+    "roe": 0.0432,
+    "debt_to_equity": 0.004,
+    "revenue_growth_yoy": -0.483,
+    "total_assets": null,
+    "total_revenue": 61152882688,
+    "market_cap": 268771852288
+  },
+  "SMLE": {
+    "pe_ratio": null,
+    "pb_ratio": 2.27,
+    "roe": -0.0337,
+    "debt_to_equity": 0.4574,
+    "revenue_growth_yoy": -0.185,
+    "total_assets": null,
+    "total_revenue": 209057169408,
+    "market_cap": 235143462912
+  },
+  "DRMA": {
+    "pe_ratio": 6.36,
+    "pb_ratio": 1.43,
+    "roe": 0.2351,
+    "debt_to_equity": 0.0903,
+    "revenue_growth_yoy": 0.059,
+    "total_assets": 4286878723108,
+    "total_revenue": 6025887875072,
+    "market_cap": 4188235104256
+  },
+  "MAPA": {
+    "pe_ratio": 9.46,
+    "pb_ratio": 1.91,
+    "roe": 0.2184,
+    "debt_to_equity": 0.2046,
+    "revenue_growth_yoy": 0.147,
+    "total_assets": 14179484000000,
+    "total_revenue": 19915215994880,
+    "market_cap": 17529960398848
+  },
+  "BELI": {
+    "pe_ratio": null,
+    "pb_ratio": 4.16,
+    "roe": -0.2141,
+    "debt_to_equity": 0.4603,
+    "revenue_growth_yoy": 0.669,
+    "total_assets": 17800778000000,
+    "total_revenue": 25502553210880,
+    "market_cap": 37220949950464
+  },
+  "STRK": {
+    "pe_ratio": null,
+    "pb_ratio": 6.51,
+    "roe": -0.1463,
+    "debt_to_equity": 0.0316,
+    "revenue_growth_yoy": 1.979,
+    "total_assets": 133065431069,
+    "total_revenue": 18418024448,
+    "market_cap": 750528495616
+  },
+  "TOSK": {
+    "pe_ratio": null,
+    "pb_ratio": 1.64,
+    "roe": 0.0281,
+    "debt_to_equity": 0.14,
+    "revenue_growth_yoy": -0.013,
+    "total_assets": null,
+    "total_revenue": 1743664971776,
+    "market_cap": 258141339648
+  }
+}
