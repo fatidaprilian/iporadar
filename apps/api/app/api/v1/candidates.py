@@ -1,13 +1,15 @@
 """IPO Candidate CRUD endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
 
 from app.database import get_db
-from app.models import IpoCandidate, CandidateStatus
+from app.models import IpoCandidate, Fundamental, CandidateStatus
+from app.ml.models import SECTOR_PROFILES
+from app.api.v1.scraper import _detect_underwriter_tier
 
 router = APIRouter()
 
@@ -55,6 +57,11 @@ class CreateCandidateIn(BaseModel):
     underwriter: Optional[str] = None
     underwriter_tier: Optional[int] = None
     status: Optional[str] = CandidateStatus.UPCOMING
+    pe_ratio: Optional[float] = None
+    pb_ratio: Optional[float] = None
+    roe: Optional[float] = None
+    debt_to_equity: Optional[float] = None
+    revenue_growth_yoy: Optional[float] = None
 
 
 class UpdateCandidateIn(BaseModel):
@@ -127,12 +134,42 @@ def get_candidate(candidate_id: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=CandidateOut, status_code=201)
 def create_candidate(data: CreateCandidateIn, db: Session = Depends(get_db)):
-    existing = db.query(IpoCandidate).filter(IpoCandidate.ticker == data.ticker).first()
+    existing = db.query(IpoCandidate).filter(IpoCandidate.ticker == data.ticker.upper()).first()
     if existing:
         raise HTTPException(status_code=409, detail=f"Ticker {data.ticker} already exists")
 
-    candidate = IpoCandidate(**data.model_dump())
+    uw_tier = data.underwriter_tier or _detect_underwriter_tier(data.underwriter)
+
+    candidate = IpoCandidate(
+        ticker=data.ticker.upper(),
+        company_name=data.company_name,
+        sector=data.sector,
+        listing_date=data.listing_date,
+        offer_price_idr=data.offer_price_idr,
+        share_count=data.share_count,
+        underwriter=data.underwriter,
+        underwriter_tier=uw_tier,
+        status=data.status or CandidateStatus.UPCOMING,
+    )
     db.add(candidate)
+    db.flush()
+
+    profile = SECTOR_PROFILES.get(
+        data.sector,
+        SECTOR_PROFILES.get("Industrials", {"sector_avg_pe": 14.0, "sector_avg_pb": 2.2}),
+    )
+    fundamental = Fundamental(
+        candidate_id=candidate.id,
+        pe_ratio=data.pe_ratio,
+        pb_ratio=data.pb_ratio,
+        roe=data.roe,
+        debt_to_equity=data.debt_to_equity,
+        revenue_growth_yoy=data.revenue_growth_yoy,
+        sector_avg_pe=profile["sector_avg_pe"],
+        sector_avg_pb=profile["sector_avg_pb"],
+    )
+    db.add(fundamental)
+
     db.commit()
     db.refresh(candidate)
     return candidate

@@ -82,11 +82,11 @@ export const api = {
     return res.json();
   },
 
-  async triggerAnalysis(topN: number = 5): Promise<{ jobId: string }> {
+  async triggerAnalysis(topN: number = 5, mode?: string): Promise<{ jobId: string }> {
     const res = await fetch(`${API_BASE_URL}/analysis/trigger`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ top_n: topN }),
+      body: JSON.stringify({ top_n: topN, mode }),
     });
     if (!res.ok) throw new Error("Failed to trigger analysis");
     return res.json();
@@ -123,6 +123,41 @@ export const api = {
   async getScraperStatus(): Promise<{ waiting: number; active: number; completed: number; failed: number }> {
     const res = await fetch(`${API_BASE_URL}/scraper/status`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to fetch scraper status");
+    return res.json();
+  },
+
+  async createCandidate(data: {
+    ticker: string;
+    company_name: string;
+    sector: string;
+    listing_date: string;
+    offer_price_idr: number;
+    underwriter?: string;
+    pe_ratio?: number;
+    pb_ratio?: number;
+    roe?: number;
+    debt_to_equity?: number;
+    revenue_growth_yoy?: number;
+  }): Promise<IpoCandidate> {
+    const res = await fetch(`${API_BASE_URL}/candidates/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to create candidate");
+    }
+    return res.json();
+  },
+
+  async triggerPipeline(mode?: string): Promise<{ status: string }> {
+    const res = await fetch(`${API_BASE_URL}/scraper/pipeline`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    });
+    if (!res.ok) throw new Error("Failed to trigger pipeline");
     return res.json();
   },
 };

@@ -29,6 +29,7 @@ router = APIRouter()
 class TriggerAnalysisIn(BaseModel):
     top_n: int = 5
     candidate_ids: Optional[list[str]] = None
+    mode: Optional[str] = None
 
 
 class AnalysisStatusOut(BaseModel):
@@ -59,8 +60,11 @@ class PaginatedResultsOut(BaseModel):
 
 # --- Background task logic ---
 
-def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int):
-    """Execute the full analysis pipeline in a background thread."""
+def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int, mode: Optional[str] = None):
+    """Execute the full analysis pipeline in a background thread.
+
+    mode: "upcoming" = LIVE only, "listed" = BACKTEST only, None = auto (both, upcoming priority)
+    """
     from app.database import SessionLocal
 
     db = SessionLocal()
@@ -73,12 +77,34 @@ def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int):
         run.started_at = datetime.now(timezone.utc)
         db.commit()
 
-        # Step 1: Gather candidates
+        # Step 1: Gather candidates based on mode
         if candidate_ids:
             candidates = (
                 db.query(IpoCandidate)
                 .options(joinedload(IpoCandidate.fundamental), joinedload(IpoCandidate.news_articles))
                 .filter(IpoCandidate.id.in_(candidate_ids))
+                .all()
+            )
+        elif mode == "upcoming":
+            candidates = (
+                db.query(IpoCandidate)
+                .options(joinedload(IpoCandidate.fundamental), joinedload(IpoCandidate.news_articles))
+                .filter(IpoCandidate.status == CandidateStatus.UPCOMING)
+                .order_by(IpoCandidate.listing_date.asc())
+                .all()
+            )
+        elif mode == "listed":
+            from datetime import timedelta
+            cutoff = datetime.now(timezone.utc).date() - timedelta(days=3650)
+            candidates = (
+                db.query(IpoCandidate)
+                .options(joinedload(IpoCandidate.fundamental), joinedload(IpoCandidate.news_articles))
+                .filter(
+                    IpoCandidate.status == CandidateStatus.LISTED,
+                    IpoCandidate.listing_date >= cutoff,
+                )
+                .order_by(IpoCandidate.listing_date.desc())
+                .limit(50)
                 .all()
             )
         else:
@@ -157,11 +183,19 @@ def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int):
             saved_predictions.append(pred)
 
         # Step 3: Rank by composite score, take top N
+        candidate_map = {c.id: c for c in candidates}
         ranked = sorted(
             [p for p in saved_predictions if p.composite_score is not None],
             key=lambda p: float(p.composite_score),
             reverse=True,
         )[:top_n]
+
+        effective_mode = mode
+        if not effective_mode:
+            has_upcoming = any(candidate_map[p.candidate_id].status == CandidateStatus.UPCOMING for p in ranked)
+            effective_mode = "upcoming" if has_upcoming else "listed"
+
+        logger.info(f"{effective_mode.upper()} mode: {len(saved_predictions)} candidates, ranking top {top_n}")
 
         # Step 4: Save analysis candidates
         for i, pred in enumerate(ranked):
@@ -174,7 +208,6 @@ def _run_analysis(run_id: str, candidate_ids: Optional[list[str]], top_n: int):
             db.add(ac)
 
         # Step 5: Build prompt
-        candidate_map = {c.id: c for c in candidates}
         ranked_with_candidates = [
             {
                 "candidate": candidate_map[pred.candidate_id],
@@ -245,7 +278,7 @@ def trigger_analysis(
     db.commit()
     db.refresh(run)
 
-    background_tasks.add_task(_run_analysis, run.id, data.candidate_ids, data.top_n)
+    background_tasks.add_task(_run_analysis, run.id, data.candidate_ids, data.top_n, data.mode)
 
     return {
         "jobId": run.id,

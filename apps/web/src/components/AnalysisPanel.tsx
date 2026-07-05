@@ -26,7 +26,13 @@ export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isBacktest = result.prompt.includes("Mode: BACKTEST");
+  const isListed = result.prompt.includes("Mode: LISTED");
+  const isLive = result.prompt.includes("Mode: LIVE");
+
+  const badgeLabel = isListed ? "Listed" : isLive ? "Live" : "Ready";
+  const badgeClass = isListed
+    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col h-full max-h-200">
@@ -34,12 +40,8 @@ export function AnalysisPanel({ result }: { result: AnalysisResult | null }) {
         <div>
           <h3 className="font-semibold text-foreground flex items-center gap-2">
             LLM Analysis Prompt
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
-              isBacktest
-                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-            }`}>
-              {isBacktest ? "Backtest" : "Ready"}
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${badgeClass}`}>
+              {badgeLabel}
             </span>
           </h3>
           <p className="text-xs text-muted-foreground mt-1">

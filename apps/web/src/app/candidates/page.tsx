@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { NavBar } from "@/components/NavBar";
 import { api, IpoCandidate } from "@/lib/api";
-import { Loader2, Search, Filter, RefreshCw } from "lucide-react";
+import { Loader2, Search, Filter, RefreshCw, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 
 const SECTORS = [
-  "All", "Banking", "Mining", "Technology", "Consumer Goods",
-  "Property", "Infrastructure", "Healthcare", "Energy", "Telecommunications",
+  "All", "Basic Materials", "Technology", "Financial Services",
+  "Consumer Cyclical", "Consumer Staples", "Property", "Industrials",
+  "Energy", "Utilities", "Healthcare", "Telecommunications", "Mining",
 ];
 
 const STATUSES = [
@@ -16,6 +17,20 @@ const STATUSES = [
   { value: "upcoming", label: "Upcoming" },
   { value: "listed", label: "Listed" },
 ];
+
+const EMPTY_FORM = {
+  ticker: "",
+  company_name: "",
+  sector: "Technology",
+  listing_date: "",
+  offer_price_idr: "",
+  underwriter: "",
+  pe_ratio: "",
+  pb_ratio: "",
+  roe: "",
+  debt_to_equity: "",
+  revenue_growth_yoy: "",
+};
 
 export default function CandidatesPage() {
   const [candidates, setCandidates] = useState<IpoCandidate[]>([]);
@@ -27,6 +42,10 @@ export default function CandidatesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [scraping, setScraping] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
@@ -35,7 +54,7 @@ export default function CandidatesPage() {
         status: status || undefined,
         sector: sector || undefined,
         page,
-        limit: 20,
+        limit: 50,
       });
       setCandidates(res.data || []);
       setTotalPages(res.meta?.totalPages || 1);
@@ -54,13 +73,41 @@ export default function CandidatesPage() {
   const handleScrape = async () => {
     setScraping(true);
     try {
-      await api.triggerScraper(["eipo"]);
+      await api.triggerScraper(["discover"]);
       await new Promise((r) => setTimeout(r, 3000));
       await fetchCandidates();
     } catch (err) {
       console.error("Scraper failed", err);
     } finally {
       setScraping(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setSubmitting(true);
+    try {
+      await api.createCandidate({
+        ticker: form.ticker.toUpperCase(),
+        company_name: form.company_name,
+        sector: form.sector,
+        listing_date: form.listing_date,
+        offer_price_idr: Number(form.offer_price_idr),
+        underwriter: form.underwriter || undefined,
+        pe_ratio: form.pe_ratio ? Number(form.pe_ratio) : undefined,
+        pb_ratio: form.pb_ratio ? Number(form.pb_ratio) : undefined,
+        roe: form.roe ? Number(form.roe) / 100 : undefined,
+        debt_to_equity: form.debt_to_equity ? Number(form.debt_to_equity) : undefined,
+        revenue_growth_yoy: form.revenue_growth_yoy ? Number(form.revenue_growth_yoy) / 100 : undefined,
+      });
+      setShowForm(false);
+      setForm(EMPTY_FORM);
+      await fetchCandidates();
+    } catch (err: any) {
+      setFormError(err.message || "Failed to create candidate");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -83,15 +130,196 @@ export default function CandidatesPage() {
               {total} IPO candidates in database
             </p>
           </div>
-          <button
-            onClick={handleScrape}
-            disabled={scraping}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${scraping ? "animate-spin" : ""}`} />
-            {scraping ? "Scraping..." : "Scrape e-IPO"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground rounded-lg font-medium text-sm hover:bg-muted transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Candidate
+            </button>
+            <button
+              onClick={handleScrape}
+              disabled={scraping}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
+            >
+              <RefreshCw className={`w-4 h-4 ${scraping ? "animate-spin" : ""}`} />
+              {scraping ? "Discovering..." : "Discover IPOs"}
+            </button>
+          </div>
         </header>
+
+        {/* Add Candidate Modal */}
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowForm(false)}>
+            <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h2 className="text-lg font-bold text-foreground">Add IPO Candidate</h2>
+                <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                {formError && (
+                  <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg text-sm">
+                    {formError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Ticker *</label>
+                    <input
+                      required
+                      value={form.ticker}
+                      onChange={(e) => setForm({ ...form, ticker: e.target.value.toUpperCase() })}
+                      placeholder="ABCD"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Sector *</label>
+                    <select
+                      required
+                      value={form.sector}
+                      onChange={(e) => setForm({ ...form, sector: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      {SECTORS.filter((s) => s !== "All").map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Company Name *</label>
+                  <input
+                    required
+                    value={form.company_name}
+                    onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+                    placeholder="PT Example Tbk"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Listing Date *</label>
+                    <input
+                      required
+                      type="date"
+                      value={form.listing_date}
+                      onChange={(e) => setForm({ ...form, listing_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Offer Price (Rp) *</label>
+                    <input
+                      required
+                      type="number"
+                      min="1"
+                      value={form.offer_price_idr}
+                      onChange={(e) => setForm({ ...form, offer_price_idr: e.target.value })}
+                      placeholder="100"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Underwriter</label>
+                  <input
+                    value={form.underwriter}
+                    onChange={(e) => setForm({ ...form, underwriter: e.target.value })}
+                    placeholder="BCA Sekuritas (auto-detects tier)"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-3">Fundamentals (optional — defaults to sector average)</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">P/E</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={form.pe_ratio}
+                        onChange={(e) => setForm({ ...form, pe_ratio: e.target.value })}
+                        placeholder="15.0"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">P/B</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={form.pb_ratio}
+                        onChange={(e) => setForm({ ...form, pb_ratio: e.target.value })}
+                        placeholder="2.0"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">ROE (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={form.roe}
+                        onChange={(e) => setForm({ ...form, roe: e.target.value })}
+                        placeholder="10.0"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">D/E</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={form.debt_to_equity}
+                        onChange={(e) => setForm({ ...form, debt_to_equity: e.target.value })}
+                        placeholder="0.50"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">Rev Growth (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={form.revenue_growth_yoy}
+                        onChange={(e) => setForm({ ...form, revenue_growth_yoy: e.target.value })}
+                        placeholder="5.0"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="px-4 py-2 bg-card border border-border text-foreground rounded-lg text-sm hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {submitting ? "Saving..." : "Add Candidate"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
@@ -135,7 +363,7 @@ export default function CandidatesPage() {
             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
               <Filter className="w-12 h-12 mb-3 opacity-30" />
               <p className="font-medium">No candidates found</p>
-              <p className="text-sm mt-1">Try adjusting your filters or run the scraper.</p>
+              <p className="text-sm mt-1">Try adjusting your filters or add a candidate manually.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

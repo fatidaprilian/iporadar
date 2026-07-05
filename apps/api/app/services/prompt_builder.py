@@ -104,14 +104,14 @@ def build_prompt(ranked_candidates: list[dict], analysis_date: datetime) -> str:
     )
 
     if all_listed:
-        preamble = f"""Kamu adalah validator model ML untuk IPO screening.
+        preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
 
 KONTEKS: Kandidat di bawah adalah IPO BEI yang SUDAH LISTING.
-Tugasmu: verifikasi apakah prediksi ML (Layer 1 & Layer 2 score)
-sesuai dengan performa aktual saham setelah listing.
+Tugasmu: analisa apakah saham-saham ini masih layak dibeli/hold
+pada harga saat ini, atau sebaiknya dihindari.
 
 Tanggal analisa: {date_str}
-Mode: BACKTEST (validasi akurasi ML)"""
+Mode: LISTED (analisa strategi post-IPO)"""
     elif has_upcoming:
         preamble = f"""Kamu adalah analis saham IPO Indonesia yang independen dan kritis.
 Tugasmu adalah membandingkan kandidat IPO berikut dan memilih SATU
@@ -127,39 +127,51 @@ yang paling layak dibeli saat ini berdasarkan analisa menyeluruh.
 Tanggal analisa: {date_str}"""
 
     if all_listed:
-        instructions = """INSTRUKSI BACKTEST:
+        instructions = """INSTRUKSI ANALISA STRATEGI:
 
+Langkah 1 -- Web Search (WAJIB)
+Untuk setiap kandidat, cari:
+  - Harga saham saat ini vs harga penawaran IPO
+  - Performa sejak listing (return hari pertama, return 30 hari, return saat ini)
+  - Berita terbaru tentang perusahaan
+  - Apakah ada aksi korporasi, rights issue, atau perubahan fundamental
+
+Langkah 2 -- Evaluasi Performa Post-IPO
 Untuk setiap kandidat:
-1. Cari harga saham saat ini dan bandingkan dengan harga penawaran IPO
-2. Tentukan apakah saham outperform (naik) atau underperform (turun)
-   - Hari pertama: harga close hari pertama vs harga penawaran
-   - 30 hari: harga di ~30 hari setelah listing vs harga penawaran
+  - Bandingkan harga saat ini vs harga IPO → berapa % gain/loss
+  - Bandingkan dengan IHSG di periode yang sama
+  - Apakah ML score (Layer 1 & Layer 2) akurat? Validasi singkat
+  - Identifikasi: saham ini outperform, sideways, atau underperform?
 
-3. Bandingkan dengan prediksi ML:
-   - Layer 1 score > 50% = ML prediksi outperform hari pertama
-   - Layer 2 score > 50% = ML prediksi outperform 30 hari
-   - Cek apakah prediksi ML BENAR atau SALAH
+Langkah 3 -- Analisa Fundamental Terkini
+  - Apakah ROE masih konsisten dengan saat IPO?
+  - Apakah ada perubahan signifikan (revenue turun, debt naik)?
+  - Bandingkan valuasi sekarang vs saat IPO
 
-4. Hitung akurasi total model ML dari sampel ini"""
+Langkah 4 -- Strategi & Rekomendasi
+Untuk setiap saham, berikan rekomendasi:
+  - BUY: masih undervalued, fundamental kuat, harga menarik
+  - HOLD: sudah punya, masih layak disimpan
+  - AVOID: overvalued, fundamental memburuk, atau ada red flag"""
 
         output_format = """OUTPUT FORMAT:
 
-TABEL VALIDASI:
-| Ticker | L1 Score | Prediksi L1 | Aktual Hari-1 | L1 Benar? | L2 Score | Prediksi L2 | Aktual 30d | L2 Benar? |
+TABEL PERFORMA:
+| Ticker | Harga IPO | Harga Skrg | Return | vs IHSG | ML Akurat? | Rekomendasi |
 (isi per kandidat)
 
-AKURASI MODEL:
-- Layer 1 (first-day): X dari Y benar (Z%)
-- Layer 2 (30-day): X dari Y benar (Z%)
+ANALISA PER SAHAM:
+[Untuk setiap kandidat: 2-3 paragraf analisa fundamental + teknikal + katalis]
 
-POLA KESALAHAN (jika ada):
-[Sebutkan pola: misal "ML terlalu optimis untuk sektor X" atau "ML salah di saham small-cap"]
+TOP PICK (jika ada):
+[Pilih 1 saham listed yang paling menarik untuk dibeli SEKARANG, dengan alasan]
 
-KESIMPULAN:
-[1-2 kalimat: apakah model ML cukup akurat untuk digunakan?]
+YANG HARUS DIHINDARI:
+[Saham mana yang sebaiknya tidak dibeli, dan mengapa]
 
 DISCLAIMER:
-Ini adalah backtest validasi model ML, bukan saran investasi."""
+Output ini adalah hasil analisa sistem decision support dan bukan
+saran investasi. Keputusan beli/tidak beli sepenuhnya tanggung jawab investor."""
     else:
         instructions = """INSTRUKSI ANALISA:
 
