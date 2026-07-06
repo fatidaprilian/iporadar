@@ -1257,11 +1257,11 @@ def _enrich_from_news(db):
 
 
 def _run_pipeline(mode: str | None = None):
-    """Full pipeline: discover IPOs → news+sentiment → ML analysis.
+    """Full pipeline: discover IPOs → scrape → news → ML analysis.
 
-    mode: "upcoming" = scrape + upcoming analysis only,
-          "listed" = listed analysis only (no scraping),
-          None = scrape + both analyses
+    mode: "upcoming" = full scrape + upcoming analysis,
+          "listed"  = news scrape for listed tickers + listed analysis,
+          None      = full scrape + both analyses
     """
     import asyncio
 
@@ -1272,9 +1272,9 @@ def _run_pipeline(mode: str | None = None):
         from app.database import SessionLocal
         from app.models import IpoCandidate, CandidateStatus
 
-        if mode != "listed":
-            db = SessionLocal()
-            try:
+        db = SessionLocal()
+        try:
+            if mode != "listed":
                 await _discover_ipo_from_news(db)
                 completed_sources.append("discover")
 
@@ -1287,19 +1287,31 @@ def _run_pipeline(mode: str | None = None):
                 upcoming = db.query(IpoCandidate).filter(
                     IpoCandidate.status == CandidateStatus.UPCOMING
                 ).all()
-                target_tickers = [c.ticker for c in upcoming]
+                upcoming_tickers = [c.ticker for c in upcoming]
 
-                if target_tickers:
-                    await _scrape_news(db, target_tickers)
-                    completed_sources.append("news")
+                if upcoming_tickers:
+                    await _scrape_news(db, upcoming_tickers)
+                    completed_sources.append("news_upcoming")
 
                     _enrich_from_news(db)
                     completed_sources.append("enrich")
                 else:
-                    logger.info("No upcoming candidates — skipping news scrape")
+                    logger.info("No upcoming candidates — skipping upcoming news scrape")
 
-            finally:
-                db.close()
+            if mode != "upcoming":
+                listed = db.query(IpoCandidate).filter(
+                    IpoCandidate.status == CandidateStatus.LISTED
+                ).all()
+                listed_tickers = [c.ticker for c in listed]
+
+                if listed_tickers:
+                    await _scrape_news(db, listed_tickers)
+                    completed_sources.append("news_listed")
+                else:
+                    logger.info("No listed candidates — skipping listed news scrape")
+
+        finally:
+            db.close()
 
         from app.api.v1.analysis import _run_analysis
         from app.database import SessionLocal as SL2
@@ -1331,13 +1343,13 @@ def _run_pipeline(mode: str | None = None):
                 if listed_count > 0:
                     run_bt = AnalysisRun(
                         status=RunStatus.QUEUED,
-                        top_n=5,
+                        top_n=min(listed_count, 10),
                         trigger_type=TriggerType.MANUAL,
                     )
                     db2.add(run_bt)
                     db2.commit()
                     db2.refresh(run_bt)
-                    _run_analysis(run_bt.id, None, 5, mode="listed")
+                    _run_analysis(run_bt.id, None, min(listed_count, 10), mode="listed")
                     completed_sources.append("analysis_listed")
                     logger.info(f"Listed analysis done: {listed_count} candidates")
 
@@ -1387,9 +1399,9 @@ def trigger_pipeline(data: PipelineIn = PipelineIn(), background_tasks: Backgrou
 
     steps = []
     if data.mode != "listed":
-        steps.extend(["discover", "eipo", "prospectus", "news", "enrich", "analysis_upcoming"])
+        steps.extend(["discover", "eipo", "prospectus", "news_upcoming", "enrich", "analysis_upcoming"])
     if data.mode != "upcoming":
-        steps.append("analysis_listed")
+        steps.extend(["news_listed", "analysis_listed"])
 
     return {
         "status": "queued",

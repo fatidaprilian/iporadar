@@ -152,7 +152,16 @@ Langkah 4 -- Strategi & Rekomendasi
 Untuk setiap saham, berikan rekomendasi:
   - BUY: masih undervalued, fundamental kuat, harga menarik
   - HOLD: sudah punya, masih layak disimpan
-  - AVOID: overvalued, fundamental memburuk, atau ada red flag"""
+  - AVOID: overvalued, fundamental memburuk, atau ada red flag
+
+Langkah 5 -- Trading Plan (WAJIB untuk setiap saham BUY atau HOLD)
+Untuk setiap saham yang direkomendasi BUY atau HOLD, buatkan:
+  - Entry price: di harga berapa layak masuk (harga saat ini, atau tunggu koreksi ke level tertentu)
+  - Take Profit: target harga realistis dalam % dari entry, berdasarkan valuasi wajar atau resistance teknikal
+  - Cut Loss: batas kerugian maksimal dalam % dari entry
+  - Holding period: berapa lama wajar di-hold (1 minggu, 1 bulan, 3 bulan, dst)
+  - Katalis yang ditunggu: event spesifik yang bisa jadi trigger (laporan keuangan, aksi korporasi, dll)
+Catatan: gunakan % dari harga entry, jangan menebak harga eksak."""
 
         output_format = """OUTPUT FORMAT:
 
@@ -165,6 +174,10 @@ ANALISA PER SAHAM:
 
 TOP PICK (jika ada):
 [Pilih 1 saham listed yang paling menarik untuk dibeli SEKARANG, dengan alasan]
+
+TRADING PLAN PER SAHAM (untuk setiap BUY/HOLD):
+| Ticker | Entry Price | Take Profit | Cut Loss | Hold Period | Katalis |
+(isi per saham yang direkomendasi BUY atau HOLD)
 
 YANG HARUS DIHINDARI:
 [Saham mana yang sebaiknya tidak dibeli, dan mengapa]
